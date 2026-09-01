@@ -30,7 +30,14 @@ automatically, so there is nothing to configure in development — just have the
 
 ## Building for production
 
-One environment variable, set at **build time** (Vite bakes it into the bundle):
+Start from a clean install so you get exactly what the lockfile pins — the same thing a deploy
+pipeline installs:
+
+```powershell
+npm ci
+```
+
+One setting, and it is read at **build time**. Put it in `.env.production` in this folder:
 
 ```ini
 VITE_API_URL=https://api.your-domain.com
@@ -38,13 +45,25 @@ VITE_API_URL=https://api.your-domain.com
 
 No `/api` on the end and no trailing slash — the code appends `/api` itself.
 
+> **Nothing in a `VITE_` variable is secret.** Vite writes these straight into the JavaScript that
+> ships to the browser, so treat them as public. A URL is fine; an API key never is.
+
 ```powershell
-npm run build     # writes dist/
+npm run build     # type-checks, then writes dist/
+npm run preview   # serves dist/ on http://localhost:4173 to check it
 ```
 
-`dist/` is plain static files. Upload them to S3, Cloudflare Pages, or any web server. Because the
-app uses client-side routing, whatever serves it must return `index.html` for unknown paths, or
-refreshing on `/chat` gives a 404. Deployment notes are in the API repository's `DEPLOYMENT.md`.
+`dist/` is plain static files — Cloudflare Pages, S3, or any web server will serve it. Two things
+must be true wherever it lands:
+
+- `dist/_redirects` has to be there. React Router owns the URLs, so the host must return
+  `index.html` for unknown paths or refreshing on `/chat` gives a 404. Vite copies it from
+  `public/`.
+- Changing `VITE_API_URL` needs a **rebuild**, not a restart. It is already compiled into the
+  bundle.
+
+Full deployment notes live in the API repository:
+[kratin01/SaarthiOS → DEPLOYMENT.md](https://github.com/kratin01/SaarthiOS/blob/main/DEPLOYMENT.md).
 
 ---
 
