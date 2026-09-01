@@ -1,0 +1,197 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Light: warm paper. Dark: the same sage character on a deep charcoal-green,
+   * never pure black and never pure white — that is what keeps it calm.
+   * Values are space-separated RGB so Tailwind can apply opacity modifiers.
+   */
+  :root {
+    color-scheme: light;
+
+    --canvas: 246 247 244;
+    --surface: 255 255 255;
+    --line: 232 234 228;
+    --ink: 43 50 46;
+    --muted: 120 130 124;
+    --overlay: 43 50 46;
+
+    --brand-50: 241 246 243;
+    --brand-100: 222 234 227;
+    --brand-200: 191 214 200;
+    --brand-300: 152 188 168;
+    --brand-400: 110 156 132;
+    --brand-500: 78 124 107;
+    --brand-600: 61 100 85;
+    --brand-700: 50 80 69;
+    --brand-800: 42 64 57;
+    --brand-900: 35 53 49;
+
+    /* Filled buttons and bubbles: a solid block plus the ink that sits on it. */
+    --brand-solid: 78 124 107;
+    --brand-solid-hover: 61 100 85;
+    --brand-solid-ink: 255 255 255;
+
+    --expense: 192 132 87;
+    --health: 111 158 126;
+    --invest: 107 135 168;
+
+    --shadow: 43 50 46;
+    --shadow-a1: 0.04;
+    --shadow-a2: 0.1;
+    --shadow-a3: 0.16;
+
+    --scrollbar: 213 217 209;
+  }
+
+  .dark {
+    color-scheme: dark;
+
+    --canvas: 21 25 23;
+    --surface: 30 35 32;
+    --line: 45 52 48;
+    --ink: 231 235 230;
+    --muted: 141 152 144;
+    --overlay: 0 0 0;
+
+    /* The tint end of the scale flips dark and the text end flips light, so
+       pairs like `bg-brand-50 text-brand-700` stay readable in both themes. */
+    --brand-50: 28 38 33;
+    --brand-100: 34 46 40;
+    --brand-200: 44 59 51;
+    --brand-300: 58 78 68;
+    --brand-400: 88 122 106;
+    --brand-500: 109 168 142;
+    --brand-600: 138 192 166;
+    --brand-700: 166 212 188;
+    --brand-800: 194 227 209;
+    --brand-900: 222 240 229;
+
+    /* Light block, dark ink — a mid-tone block with white text fails contrast
+       against a dark page. */
+    --brand-solid: 141 197 172;
+    --brand-solid-hover: 163 212 190;
+    --brand-solid-ink: 18 28 23;
+
+    --expense: 209 154 112;
+    --health: 133 184 150;
+    --invest: 134 163 196;
+
+    --shadow: 0 0 0;
+    --shadow-a1: 0.3;
+    --shadow-a2: 0.45;
+    --shadow-a3: 0.55;
+
+    --scrollbar: 58 66 61;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /*
+   * Held on <html> for one frame while the theme swaps.
+   * Chromium caches the resolved value of a transitioned property, so an
+   * element with `transition` keeps its old colour when only a CSS variable
+   * underneath it changes. Dropping the transitions forces a clean recompute —
+   * and the switch feels crisper than 150ms of everything cross-fading.
+   */
+  .theme-switching *,
+  .theme-switching *::before,
+  .theme-switching *::after {
+    transition: none !important;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-sans antialiased;
+  }
+
+  /* Calm, thin scrollbars that fade into the page. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--scrollbar)) transparent;
+  }
+
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-line;
+  }
+
+  /*
+   * Keyboard focus ring for controls that do not style their own focus.
+   * Deliberately not a blanket `:focus-visible` — text fields already show
+   * focus through `.input` or their wrapper, and a second ring on top of that
+   * reads as a broken double border.
+   */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  [role='button']:focus-visible {
+    @apply outline-none ring-2 ring-brand-400 ring-offset-2 ring-offset-canvas;
+  }
+
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    @apply outline-none;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-2xl border border-line bg-surface shadow-card;
+  }
+
+  .input {
+    @apply w-full rounded-xl border border-line bg-surface px-3.5 py-2.5 text-sm text-ink
+           placeholder:text-muted/70 transition focus:border-brand-300 focus:outline-none
+           focus:ring-2 focus:ring-brand-100;
+  }
+
+  .label {
+    @apply mb-1.5 block text-xs font-medium uppercase tracking-wide text-muted;
+  }
+
+  /** A filled brand block. Carries its own text colour, so `text-white` is
+      never hardcoded on top of a colour that changes with the theme. */
+  .brand-solid {
+    background-color: rgb(var(--brand-solid));
+    color: rgb(var(--brand-solid-ink));
+  }
+
+  .brand-solid:hover:not(:disabled) {
+    background-color: rgb(var(--brand-solid-hover));
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm
+           font-medium transition disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply btn brand-solid;
+  }
+
+  .btn-ghost {
+    @apply btn border border-line bg-surface text-ink hover:bg-canvas;
+  }
+
+  .btn-quiet {
+    @apply btn text-muted hover:bg-canvas hover:text-ink;
+  }
+
+  .chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-line bg-surface
+           px-3 py-1 text-xs font-medium text-muted transition hover:text-ink;
+  }
+
+  .chip-active {
+    @apply border-brand-200 bg-brand-50 text-brand-700;
+  }
+}
