@@ -86,7 +86,7 @@ export function ExpensesPage() {
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
       ) : (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Stat
               label={`Total ${data.summary.range}`}
               value={money(data.summary.total)}
@@ -107,7 +107,7 @@ export function ExpensesPage() {
             />
           </div>
 
-          <div className="mb-6 grid gap-4 lg:grid-cols-5">
+          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card title="Daily spending" className="lg:col-span-3">
               <TrendChart
                 data={data.summary.byDay}

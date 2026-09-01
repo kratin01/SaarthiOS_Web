@@ -94,7 +94,7 @@ export function DashboardPage() {
       {header}
 
       {insights.length > 0 && (
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {insights.map((insight, index) => (
             <p
               key={index}
@@ -107,7 +107,7 @@ export function DashboardPage() {
       )}
 
       {/* Investments are a monthly habit, not a daily number — they live in their own tab. */}
-      <div className="mb-6 grid gap-4 sm:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Stat
           label={`Spent ${periodLabel}`}
           value={money(expenses.total)}
@@ -131,7 +131,7 @@ export function DashboardPage() {
         />
       </div>
 
-      <div className="mb-6 grid gap-4 lg:grid-cols-2">
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Spending" description={isMonth ? 'Each day this month' : 'Last 7 days'}>
           <TrendChart
             data={expenses.series}
@@ -155,7 +155,7 @@ export function DashboardPage() {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
         <Card
           title="Where money went"
           description={capitalise(periodLabel)}

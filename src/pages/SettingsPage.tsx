@@ -47,7 +47,7 @@ export function SettingsPage() {
     <Page>
       <PageHeader title="Settings" subtitle="Your profile, goals and AI connection." />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card title="Profile" description="Used across every dashboard">
           <form onSubmit={save} className="space-y-4">
             <div>

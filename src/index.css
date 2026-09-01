@@ -144,8 +144,15 @@
 }
 
 @layer components {
+  /*
+   * `min-w-0` matters more than it looks. A card is almost always a grid or
+   * flex item, and those default to `min-width: auto` — meaning they refuse to
+   * shrink below their content's intrinsic width. A chart inside a card renders
+   * at a fixed pixel width, so without this the card pins the column open at
+   * that width and the whole page scrolls sideways on a phone.
+   */
   .card {
-    @apply rounded-2xl border border-line bg-surface shadow-card;
+    @apply min-w-0 rounded-2xl border border-line bg-surface shadow-card;
   }
 
   .input {
@@ -194,4 +201,21 @@
   .chip-active {
     @apply border-brand-200 bg-brand-50 text-brand-700;
   }
+}
+
+/*
+ * Recharts internals. Deliberately outside `@layer components`: Tailwind only
+ * keeps layered rules whose class names it can find in the source files, and
+ * these classes are added by the library at runtime, so a layered rule would
+ * be purged from the build.
+ *
+ * Recharts keeps the tooltip node mounted and only flips it to
+ * `visibility: hidden`, parked wherever it was last drawn. Hidden elements
+ * still count towards scroll width, so after one tap on a chart a wide tooltip
+ * left near the right edge silently makes the whole page scroll sideways.
+ * Recharts already keeps the tooltip inside the chart's viewBox while it is
+ * visible, so clipping at the chart edge costs nothing.
+ */
+.recharts-wrapper {
+  overflow: hidden;
 }

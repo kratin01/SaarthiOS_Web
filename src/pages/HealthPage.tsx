@@ -70,7 +70,7 @@ export function HealthPage() {
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
       ) : (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Stat
               label="Daily average"
               value={`${data.summary.dailyAverage} kcal`}
@@ -108,7 +108,7 @@ export function HealthPage() {
             />
           </div>
 
-          <div className="mb-6 grid gap-4 lg:grid-cols-5">
+          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card title="Calories per day" className="lg:col-span-3">
               <TrendChart
                 data={data.summary.byDay}
@@ -341,7 +341,7 @@ function MealModal({
           </p>
         )}
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div>
             <label className="label" htmlFor="mealType">
               Meal

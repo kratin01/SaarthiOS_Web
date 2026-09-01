@@ -86,7 +86,7 @@ export function HoldingsPanel({
       {data && !error && (
         <>
           {totals && totals.counted > 0 && (
-            <div className="mb-4 grid gap-4 rounded-xl border border-line bg-canvas p-4 sm:grid-cols-4">
+            <div className="mb-4 grid grid-cols-1 gap-4 rounded-xl border border-line bg-canvas p-4 sm:grid-cols-4">
               <Figure label="Invested" value={formatMoney(totals.invested, currency)} />
               <Figure label="Worth now" value={formatMoney(totals.value, currency)} />
               <Figure

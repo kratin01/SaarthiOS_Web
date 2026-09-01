@@ -78,7 +78,7 @@ export function CustomAgentPage() {
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
       ) : (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <Stat
               label={`Entries ${data.summary.range}`}
               value={String(data.summary.count)}
@@ -281,7 +281,7 @@ function EntryModal({
           />
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           {agent.fields.map((field: CustomAgentField) => (
             <div key={field.key}>
               <label className="label" htmlFor={`entry-${field.key}`}>

@@ -98,7 +98,7 @@ export function InvestmentsPage() {
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
       ) : (
         <>
-          <div className="mb-6 grid gap-4 sm:grid-cols-3">
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
             <Stat
               label={`Contributed ${data.summary.range}`}
               value={money(data.summary.total)}
@@ -120,7 +120,7 @@ export function InvestmentsPage() {
             />
           </div>
 
-          <div className="mb-6 grid gap-4 lg:grid-cols-5">
+          <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-5">
             <Card title="Contributions by month" className="lg:col-span-3">
               <BarsChart
                 data={data.summary.byMonth.map((m) => ({ month: m.month, amount: m.amount }))}
@@ -334,7 +334,7 @@ function InvestmentModal({
         </div>
 
         {needsQuantity && (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="inv-quantity">
                 Shares

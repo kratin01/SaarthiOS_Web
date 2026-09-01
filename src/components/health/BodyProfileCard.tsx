@@ -100,7 +100,7 @@ export function BodyProfileCard() {
       className="mb-6"
     >
       {isSet && !open && (
-        <div className="grid gap-4 sm:grid-cols-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
           <Figure label="BMI" value={String(bmiOf(user!.heightCm!, user!.weightKg!))} tone={BAND_TONE[bandOf(bmiOf(user!.heightCm!, user!.weightKg!))]} hint={bandOf(bmiOf(user!.heightCm!, user!.weightKg!))} />
           <Figure label="Goal" value={GOALS.find((g) => g.value === user?.bodyGoal)?.label ?? 'Maintain'} />
           <Figure label="Calories a day" value={`${user?.dailyCalorieGoal ?? 0}`} hint="kcal" />
@@ -121,7 +121,7 @@ export function BodyProfileCard() {
 
       {open && (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <div>
               <label className="label" htmlFor="body-height">
                 Height <span className="normal-case text-muted/70">(cm)</span>
@@ -157,7 +157,7 @@ export function BodyProfileCard() {
 
           <div>
             <span className="label">What are you aiming for</span>
-            <div className="grid gap-2 sm:grid-cols-3">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {GOALS.map((option) => (
                 <button
                   key={option.value}
@@ -203,7 +203,7 @@ export function BodyProfileCard() {
 
               <p className="mb-4 text-sm text-muted">{targets.note}</p>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 <div>
                   <label className="label" htmlFor="body-calories">
                     Daily calories <span className="normal-case text-muted/70">(kcal)</span>
