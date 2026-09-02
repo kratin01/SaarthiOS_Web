@@ -1,7 +1,8 @@
-/** The `Month · Last month · Year` pills used above each detail dashboard. */
+/** The `Today · Week · Month` pills used above each detail dashboard. */
 import type { Range } from '@/types';
 
 const OPTIONS: { value: Range; label: string }[] = [
+  { value: 'today', label: 'Today' },
   { value: 'week', label: 'Week' },
   { value: 'month', label: 'Month' },
   { value: 'last_month', label: 'Last month' },

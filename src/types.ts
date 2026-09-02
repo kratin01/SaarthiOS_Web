@@ -238,7 +238,7 @@ export interface Insight {
 
 export interface RecentItem {
   id: string;
-  kind: 'expense' | 'meal' | 'investment';
+  kind: 'expense' | 'meal' | 'investment' | 'custom';
   title: string;
   subtitle: string;
   amount: number | null;
@@ -272,6 +272,7 @@ export interface Dashboard {
   /** Investments are deliberately absent: they are a monthly habit, so the
    *  overview leaves them to the Investments page. */
   recent: RecentItem[];
+  recentPage: PageInfo;
   insights: Insight[];
 }
 

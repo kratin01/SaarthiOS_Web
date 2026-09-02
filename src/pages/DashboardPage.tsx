@@ -6,10 +6,12 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { dashboardApi } from '@/api';
 import { useFetch } from '@/hooks/useFetch';
+import { useLoadMore } from '@/hooks/useLoadMore';
 import { useAuth } from '@/context/AuthContext';
 import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
+import { LoadMore } from '@/components/ui/LoadMore';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import { LeafIcon, SparkIcon, WalletIcon } from '@/components/ui/Icons';
 import { DonutChart, Legend, TrendChart } from '@/components/charts/Charts';
@@ -32,6 +34,14 @@ export function DashboardPage() {
   const { user } = useAuth();
   const [period, setPeriod] = useState<DashboardPeriod>('today');
   const { data, loading, error, reload } = useFetch(() => dashboardApi.overview(period), [period]);
+
+  // The feed is the same whichever period is showing, so it is not reset by it.
+  const activity = useLoadMore({
+    first: data?.recent ?? [],
+    firstPage: data?.recentPage,
+    resetKey: 'activity',
+    fetchMore: (offset) => dashboardApi.activity(offset)
+  });
 
   const toggle = (
     <div className="flex gap-1.5">
@@ -192,26 +202,38 @@ export function DashboardPage() {
           bodyClassName="p-0 sm:p-0"
         >
           {recent.length ? (
-            <ul className="divide-y divide-line">
-              {recent.map((item) => (
-                <li key={`${item.kind}-${item.id}`} className="flex items-center gap-3 px-5 py-3">
-                  <span
-                    className="h-2 w-2 shrink-0 rounded-full"
-                    style={{ backgroundColor: KIND_COLOR[item.kind] }}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-ink">{item.title}</p>
-                    <p className="truncate text-xs text-muted">{item.subtitle}</p>
-                  </div>
-                  <div className="shrink-0 text-right">
-                    {item.amount !== null && (
-                      <p className="text-sm font-medium text-ink">{money(item.amount)}</p>
-                    )}
-                    <p className="text-xs text-muted">{formatRelativeDay(item.date)}</p>
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <>
+              <ul className="divide-y divide-line">
+                {activity.items.map((item) => (
+                  <li key={`${item.kind}-${item.id}`} className="flex items-center gap-3 px-5 py-3">
+                    <span
+                      className="h-2 w-2 shrink-0 rounded-full"
+                      style={{ backgroundColor: KIND_COLOR[item.kind] }}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-ink">{item.title}</p>
+                      <p className="truncate text-xs text-muted">{item.subtitle}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      {item.amount !== null && (
+                        <p className="text-sm font-medium text-ink">{money(item.amount)}</p>
+                      )}
+                      <p className="text-xs text-muted">{formatRelativeDay(item.date)}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+
+              <LoadMore
+                shown={activity.shown}
+                total={activity.total}
+                hasMore={activity.hasMore}
+                loading={activity.loadingMore}
+                error={activity.moreError}
+                onMore={() => void activity.loadMore()}
+                noun="entries"
+              />
+            </>
           ) : (
             <EmptyState
               title="Nothing here yet"
@@ -232,7 +254,8 @@ export function DashboardPage() {
 const KIND_COLOR: Record<string, string> = {
   expense: '#C08457',
   meal: '#6F9E7E',
-  investment: '#6B87A8'
+  investment: '#6B87A8',
+  custom: '#8A7CA8'
 };
 
 const capitalise = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);

@@ -31,6 +31,11 @@ export function HealthPage() {
   const goal = user?.dailyCalorieGoal ?? 2000;
   const proteinGoal = user?.dailyProteinGoal ?? 0;
 
+  // Compared against a per-day goal, so it has to be a per-day number too.
+  const proteinPerDay = data?.summary.loggedDays
+    ? Math.round(data.summary.totals.protein / data.summary.loggedDays)
+    : 0;
+
   const rows = useLoadMore({
     first: data?.items ?? [],
     firstPage: data?.page,
@@ -80,19 +85,15 @@ export function HealthPage() {
               progress={goal ? (data.summary.dailyAverage / goal) * 100 : null}
             />
             <Stat
-              label="Protein"
-              value={`${data.summary.totals.protein} g`}
+              label="Protein a day"
+              value={`${proteinPerDay} g`}
               hint={
                 proteinGoal
                   ? `goal ${proteinGoal} g a day`
-                  : `${data.summary.range} total`
+                  : `${data.summary.totals.protein} g in total`
               }
               accent="#6F9E7E"
-              progress={
-                proteinGoal && data.summary.loggedDays
-                  ? (data.summary.totals.protein / data.summary.loggedDays / proteinGoal) * 100
-                  : null
-              }
+              progress={proteinGoal ? (proteinPerDay / proteinGoal) * 100 : null}
             />
             <Stat
               label="Meals logged"

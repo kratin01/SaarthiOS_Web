@@ -30,6 +30,7 @@ import type {
   NutritionSummary,
   PageInfo,
   Range,
+  RecentItem,
   ThreadPageInfo,
   TipsResponse,
   User
@@ -110,7 +111,13 @@ export const aiApi = {
 
 export const dashboardApi = {
   overview: (period: DashboardPeriod = 'today') =>
-    http.get<Dashboard>('/dashboard', { params: { period } }).then((r) => r.data)
+    http.get<Dashboard>('/dashboard', { params: { period } }).then((r) => r.data),
+  activity: (offset: number, limit = 8) =>
+    http
+      .get<{ items: RecentItem[]; page: PageInfo }>('/dashboard/activity', {
+        params: { offset, limit }
+      })
+      .then((r) => r.data)
 };
 
 export const expenseApi = {
