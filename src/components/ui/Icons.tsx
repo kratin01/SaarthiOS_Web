@@ -151,6 +151,21 @@ export const MoonIcon = (p: Props) => (
   </Svg>
 );
 
+export const EyeIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M2 12s3.5-6.5 10-6.5S22 12 22 12s-3.5 6.5-10 6.5S2 12 2 12Z" />
+    <circle cx="12" cy="12" r="2.8" />
+  </Svg>
+);
+
+export const EyeOffIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M10.6 6.1A9.7 9.7 0 0 1 12 6c6.5 0 10 6 10 6a17 17 0 0 1-3 3.6M6.6 6.8A16.6 16.6 0 0 0 2 12s3.5 6 10 6a9.9 9.9 0 0 0 4.2-.9" />
+    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
+    <path d="m3 3 18 18" />
+  </Svg>
+);
+
 /**
  * The icons a custom agent can pick from. The keys match CUSTOM_AGENT_ICONS on
  * the server, so anything saved there can always be drawn here.

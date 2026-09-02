@@ -7,6 +7,7 @@ import { errorMessage } from '@/api/http';
 import { useFetch } from '@/hooks/useFetch';
 import { useStatus } from '@/context/StatusContext';
 import { GoogleButton } from '@/components/auth/GoogleButton';
+import { EyeIcon, EyeOffIcon } from '@/components/ui/Icons';
 import { Spinner } from '@/components/ui/States';
 
 export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
@@ -16,6 +17,7 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -141,16 +143,33 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
               <label className="label" htmlFor="password">
                 Password
               </label>
-              <input
-                id="password"
-                type="password"
-                className="input"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete={isRegister ? 'new-password' : 'current-password'}
-                required
-                minLength={isRegister ? 8 : undefined}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  className="input pr-11"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete={isRegister ? 'new-password' : 'current-password'}
+                  required
+                  minLength={isRegister ? 8 : undefined}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  // Not focusable: tabbing from the field should reach the submit
+                  // button, and the toggle is still reachable by pointer.
+                  tabIndex={-1}
+                  className="absolute inset-y-0 right-0 flex items-center px-3 text-muted transition hover:text-ink"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOffIcon className="h-4 w-4" />
+                  ) : (
+                    <EyeIcon className="h-4 w-4" />
+                  )}
+                </button>
+              </div>
               {isRegister && <p className="mt-1.5 text-xs text-muted">At least 8 characters.</p>}
             </div>
 
