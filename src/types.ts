@@ -156,6 +156,8 @@ export interface CustomAgent {
   fields: CustomAgentField[];
   icon: string;
   active: boolean;
+  /** How much history deleting this agent would take with it. */
+  entryCount?: number;
 }
 
 export interface CustomEntry {

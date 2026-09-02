@@ -27,6 +27,7 @@ export function CustomAgentsCard() {
   const { agents, max, refresh } = useAgents();
   const [editing, setEditing] = useState<CustomAgent | null>(null);
   const [creating, setCreating] = useState(false);
+  const [confirming, setConfirming] = useState<CustomAgent | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const atLimit = agents.length >= max;
@@ -35,6 +36,7 @@ export function CustomAgentsCard() {
     setError(null);
     try {
       await agentApi.remove(agent._id);
+      setConfirming(null);
       await refresh();
     } catch (err) {
       setError(errorMessage(err, 'Could not delete that agent.'));
@@ -123,7 +125,7 @@ export function CustomAgentsCard() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => void remove(agent)}
+                  onClick={() => setConfirming(agent)}
                   aria-label={`Delete ${agent.name}`}
                   className="shrink-0 rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-expense"
                 >
@@ -153,6 +155,39 @@ export function CustomAgentsCard() {
           await refresh();
         }}
       />
+
+      <Modal
+        open={confirming !== null}
+        title={`Delete ${confirming?.name ?? 'agent'}?`}
+        onClose={() => setConfirming(null)}
+      >
+        <div className="space-y-4 px-5 py-4">
+          <p className="text-sm text-ink">
+            {confirming?.entryCount
+              ? `This also deletes ${confirming.entryCount} logged ${
+                  confirming.entryCount === 1 ? 'entry' : 'entries'
+                }. It cannot be undone.`
+              : 'This agent has nothing logged yet, so nothing else is lost.'}
+          </p>
+          {!!confirming?.entryCount && (
+            <p className="text-xs text-muted">
+              To stop it listening without losing the history, use Pause instead.
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <button type="button" className="btn-ghost" onClick={() => setConfirming(null)}>
+              Cancel
+            </button>
+            <button
+              type="button"
+              className="btn bg-expense text-white hover:opacity-90"
+              onClick={() => void remove(confirming!)}
+            >
+              Delete
+            </button>
+          </div>
+        </div>
+      </Modal>
     </Card>
   );
 }
