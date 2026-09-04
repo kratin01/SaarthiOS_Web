@@ -49,7 +49,8 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
     );
   }
 
-  const current: ProviderOption | undefined = data.providers.find((p) => p.id === provider);
+  const providers = data.providers ?? [];
+  const current: ProviderOption | undefined = providers.find((p) => p.id === provider);
   const draft = { provider, model: model.trim(), baseUrl: baseUrl.trim(), apiKey: apiKey.trim() };
   const hasStoredKey = Boolean(data.keyHint) && data.provider === provider;
   const needsKey = Boolean(current && !current.keyOptional && !apiKey.trim() && !hasStoredKey);
@@ -92,7 +93,9 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
   const save = () =>
     run('save', async () => {
       const saved = await aiApi.save(draft);
-      setData(saved);
+      // Merged, not replaced: the catalogue this form is built from must
+      // survive even if a response ever comes back without it.
+      setData((prev) => ({ ...prev, ...saved }));
       setApiKey('');
       onSaved?.();
       return 'Saved. Your agents will use this from the next message.';
@@ -101,7 +104,7 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
   const reset = () =>
     run('reset', async () => {
       const saved = await aiApi.reset();
-      setData(saved);
+      setData((prev) => ({ ...prev, ...saved }));
       setProvider(saved.provider || 'gemini');
       setModel('');
       setBaseUrl('');
@@ -149,7 +152,7 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
             value={provider}
             onChange={(e) => changeProvider(e.target.value)}
           >
-            {data.providers.map((p) => (
+            {providers.map((p) => (
               <option key={p.id} value={p.id}>
                 {p.label}
               </option>
