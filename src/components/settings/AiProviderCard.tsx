@@ -142,6 +142,12 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
           </p>
         )}
 
+        {!data.configured && data.reason && (
+          <p className="rounded-xl border border-expense/25 bg-expense/5 px-3 py-2 text-xs text-ink">
+            {data.reason}
+          </p>
+        )}
+
         <div>
           <label className="label" htmlFor="ai-provider">
             Provider
