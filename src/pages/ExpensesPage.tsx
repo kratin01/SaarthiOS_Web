@@ -1,6 +1,6 @@
 /** Expense analytics plus a small form for adding one by hand. */
 import { useState } from 'react';
-import { expenseApi } from '@/api';
+import { expenseApi, authApi } from '@/api';
 import { errorMessage } from '@/api/http';
 import { useFetch } from '@/hooks/useFetch';
 import { useLoadMore } from '@/hooks/useLoadMore';
@@ -31,6 +31,9 @@ const CATEGORIES = [
   'education',
   'other'
 ];
+
+/** Sentinel for the "name your own" option, which is never a real category. */
+const NEW_CATEGORY = '__new__';
 
 export function ExpensesPage() {
   const { user } = useAuth();
@@ -254,8 +257,10 @@ function ExpenseModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { user, setUser } = useAuth();
   const [amount, setAmount] = useState(existing ? String(existing.amount) : '');
   const [category, setCategory] = useState(existing?.category ?? 'food');
+  const [newCategory, setNewCategory] = useState('');
   const [merchant, setMerchant] = useState(existing?.merchant ?? '');
   const [note, setNote] = useState(existing?.note ?? '');
   const [date, setDate] = useState(() =>
@@ -264,14 +269,21 @@ function ExpenseModal({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // The row being edited is included in case its category was invented on a
+  // device whose user record this page has not refreshed yet.
+  const options = [
+    ...new Set([...CATEGORIES, ...(user?.customCategories ?? []), ...(existing ? [existing.category] : [])])
+  ];
+
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setBusy(true);
     setError(null);
     try {
+      const named = newCategory.trim();
       const body = {
         amount: Number(amount),
-        category,
+        category: category === NEW_CATEGORY ? named : category,
         merchant: merchant.trim(),
         note: note.trim(),
         date: new Date(`${date}T12:00:00`).toISOString()
@@ -279,6 +291,13 @@ function ExpenseModal({
 
       if (existing) await expenseApi.update(existing._id, body);
       else await expenseApi.create(body);
+
+      // A new name is registered server-side, so the local user is now stale
+      // and the dropdown would not offer it next time.
+      if (category === NEW_CATEGORY) {
+        const me = await authApi.me();
+        setUser(me);
+      }
 
       onSaved();
     } catch (err) {
@@ -318,12 +337,30 @@ function ExpenseModal({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
           >
-            {CATEGORIES.map((value) => (
+            {options.map((value) => (
               <option key={value} value={value}>
                 {labelise(value)}
               </option>
             ))}
+            <option value={NEW_CATEGORY}>Something else...</option>
           </select>
+
+          {category === NEW_CATEGORY && (
+            <div className="mt-2">
+              <input
+                className="input"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="Name it, e.g. rent, rahul, side project"
+                maxLength={24}
+                required
+                autoFocus
+              />
+              <p className="mt-1.5 text-xs text-muted">
+                This becomes one of your categories, and the assistant will use it too.
+              </p>
+            </div>
+          )}
         </div>
 
         <div>

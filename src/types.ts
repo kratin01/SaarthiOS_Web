@@ -11,6 +11,8 @@ export interface User {
   heightCm: number | null;
   weightKg: number | null;
   bodyGoal: BodyGoal;
+  /** Categories this user invented, on top of the built-in list. */
+  customCategories: string[];
   googleId?: string | null;
   avatarUrl?: string;
 }

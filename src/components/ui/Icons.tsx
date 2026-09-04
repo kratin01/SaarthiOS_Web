@@ -166,18 +166,94 @@ export const EyeOffIcon = (p: Props) => (
   </Svg>
 );
 
+/* Icons only custom agents use. Kept clear of the ones in the sidebar, or a
+   custom agent ends up looking exactly like Expenses or Health. */
+
+export const DumbbellIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11" />
+  </Svg>
+);
+
+export const BookIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M4 4.5A1.5 1.5 0 0 1 5.5 3H19v15H5.5A1.5 1.5 0 0 0 4 19.5Z" />
+    <path d="M4 19.5A1.5 1.5 0 0 1 5.5 21H19v-3" />
+  </Svg>
+);
+
+export const DropletIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M12 3s6 6.2 6 10a6 6 0 0 1-12 0c0-3.8 6-10 6-10Z" />
+  </Svg>
+);
+
+export const HeartIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 8a4.2 4.2 0 0 1 7 2.7c0 4.9-7 9.3-7 9.3Z" />
+  </Svg>
+);
+
+export const TargetIcon = (p: Props) => (
+  <Svg {...p}>
+    <circle cx="12" cy="12" r="8.5" />
+    <circle cx="12" cy="12" r="4.5" />
+    <circle cx="12" cy="12" r="1" />
+  </Svg>
+);
+
+export const MusicIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M9 18V6l11-2v12" />
+    <circle cx="6.5" cy="18" r="2.5" />
+    <circle cx="17.5" cy="16" r="2.5" />
+  </Svg>
+);
+
+export const BrushIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M4 20c0-2.5 1.5-3.5 3-3.5S9.5 18 9.5 20c-1.5 1-4 1-5.5 0Z" />
+    <path d="M8 15.5 18.5 5a2.1 2.1 0 0 1 3 3L11 18.5" />
+  </Svg>
+);
+
+export const PawIcon = (p: Props) => (
+  <Svg {...p}>
+    <circle cx="7" cy="8.5" r="1.8" />
+    <circle cx="12" cy="6.5" r="1.8" />
+    <circle cx="17" cy="8.5" r="1.8" />
+    <path d="M12 11c3 0 5 2.2 5 4.5S15 20 12 20s-5-2.2-5-4.5S9 11 12 11Z" />
+  </Svg>
+);
+
 /**
  * The icons a custom agent can pick from. The keys match CUSTOM_AGENT_ICONS on
  * the server, so anything saved there can always be drawn here.
  */
 export const AGENT_ICONS = {
   spark: SparkIcon,
+  dumbbell: DumbbellIcon,
+  book: BookIcon,
+  droplet: DropletIcon,
+  heart: HeartIcon,
+  target: TargetIcon,
+  music: MusicIcon,
+  brush: BrushIcon,
+  paw: PawIcon,
+  moon: MoonIcon
+} as const;
+
+/**
+ * Agents saved before the set above existed still carry a sidebar icon name,
+ * so those keep resolving even though the picker no longer offers them.
+ */
+const LEGACY_AGENT_ICONS: Record<string, (p: Props) => JSX.Element> = {
   leaf: LeafIcon,
   trend: TrendIcon,
   wallet: WalletIcon,
   home: HomeIcon,
   chat: ChatIcon
-} as const;
+};
 
 export const agentIcon = (name: string) =>
-  AGENT_ICONS[name as keyof typeof AGENT_ICONS] ?? SparkIcon;
+  AGENT_ICONS[name as keyof typeof AGENT_ICONS] ?? LEGACY_AGENT_ICONS[name] ?? SparkIcon;
