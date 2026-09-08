@@ -44,12 +44,14 @@ export function AdminPage() {
         }
       />
 
-      {loading ? (
+      {loading && !data ? (
         <Loading label="Loading numbers" />
-      ) : error || !data ? (
-        <ErrorState message={error ?? 'No data'} onRetry={reload} />
-      ) : (
-        <>
+      ) : error && !data ? (
+        <ErrorState message={error} onRetry={reload} />
+      ) : !data ? null : (
+        // Kept on screen while the next page loads. Swapping the whole page for
+        // a spinner on every click reads as a full reload.
+        <div className={loading ? 'opacity-60 transition-opacity' : 'transition-opacity'}>
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <Stat label="People" value={String(data.users.total)} hint={`${data.users.newThisWeek} joined this week`} />
             <Stat
@@ -160,7 +162,7 @@ export function AdminPage() {
               noun="accounts"
             />
           </Card>
-        </>
+        </div>
       )}
     </Page>
   );

@@ -131,7 +131,16 @@ export function BarsChart({
   return (
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} margin={{ top: 6, right: 8, bottom: 0, left: 0 }}>
-        <XAxis dataKey={xKey} {...chart.axis} tickFormatter={formatX} interval={0} />
+        {/* A handful of named buckets should all be labelled, but a month of
+            daily bars cannot be: 30 labels overlap into an unreadable smear,
+            so past a dozen Recharts is left to drop the ones that collide. */}
+        <XAxis
+          dataKey={xKey}
+          {...chart.axis}
+          tickFormatter={formatX}
+          interval={data.length > 12 ? 'preserveStartEnd' : 0}
+          minTickGap={8}
+        />
         <YAxis {...chart.axis} width={52} tickFormatter={formatY} />
         <Tooltip
           cursor={{ fill: chart.cursor }}
