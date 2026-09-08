@@ -4,6 +4,7 @@
  */
 import { http } from './http';
 import type {
+  AdminOverview,
   AgentRun,
   AiSettingsResponse,
   AiStatus,
@@ -118,6 +119,11 @@ export const dashboardApi = {
         params: { offset, limit }
       })
       .then((r) => r.data)
+};
+
+export const adminApi = {
+  overview: (days = 30) =>
+    http.get<AdminOverview>('/admin/overview', { params: { days } }).then((r) => r.data)
 };
 
 export const expenseApi = {

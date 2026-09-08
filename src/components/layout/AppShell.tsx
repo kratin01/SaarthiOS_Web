@@ -18,6 +18,7 @@ import {
   MoonIcon,
   SettingsIcon,
   SunIcon,
+  TargetIcon,
   TrendIcon,
   WalletIcon,
   CloseIcon,
@@ -40,6 +41,7 @@ const NAV: NavItem[] = [
 ];
 
 const SETTINGS_NAV: NavItem = { to: '/settings', label: 'Settings', icon: SettingsIcon };
+const ADMIN_NAV: NavItem = { to: '/admin', label: 'Admin', icon: TargetIcon };
 
 export function AppShell() {
   const [open, setOpen] = useState(false);
@@ -56,7 +58,8 @@ export function AppShell() {
       icon: agentIcon(agent.icon)
     }));
 
-  const allNav = [...NAV, ...custom, SETTINGS_NAV];
+  // Hiding the link is presentation only. The server decides who may read it.
+  const allNav = [...NAV, ...custom, SETTINGS_NAV, ...(user?.isAdmin ? [ADMIN_NAV] : [])];
 
   const current = allNav.find((item) =>
     item.end ? location.pathname === item.to : location.pathname.startsWith(item.to)

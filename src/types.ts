@@ -13,8 +13,47 @@ export interface User {
   bodyGoal: BodyGoal;
   /** Categories this user invented, on top of the built-in list. */
   customCategories: string[];
+  /** Worked out from the server's allowlist. Never stored on the account. */
+  isAdmin?: boolean;
   googleId?: string | null;
   avatarUrl?: string;
+}
+
+export interface AdminPerson {
+  id: string;
+  name: string;
+  email: string;
+  joinedAt: string;
+  signedInWith: 'google' | 'password';
+  lastActiveAt: string | null;
+  records: number;
+  expenses: number;
+  meals: number;
+  investments: number;
+  messages: number;
+  agents: number;
+}
+
+export interface AdminOverview {
+  generatedAt: string;
+  windowDays: number;
+  users: {
+    total: number;
+    newThisWeek: number;
+    activeSevenDays: number;
+    activeThirtyDays: number;
+    neverUsed: number;
+  };
+  people: AdminPerson[];
+  totals: { expenses: number; meals: number; investments: number; messages: number; agents: number };
+  ai: {
+    runs: number;
+    failed: number;
+    failureRate: number;
+    recentFailures: { reason: string; count: number; lastAt: string }[];
+  };
+  signupsByDay: { date: string; count: number }[];
+  messagesByDay: { date: string; count: number }[];
 }
 
 export type BodyGoal = 'lean' | 'normal' | 'bulky';

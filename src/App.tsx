@@ -14,6 +14,7 @@ import { ExpensesPage } from '@/pages/ExpensesPage';
 import { HealthPage } from '@/pages/HealthPage';
 import { InvestmentsPage } from '@/pages/InvestmentsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
+import { AdminPage } from '@/pages/AdminPage';
 
 export default function App() {
   return (
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="investments" element={<InvestmentsPage />} />
             <Route path="a/:slug" element={<CustomAgentPage />} />
             <Route path="settings" element={<SettingsPage />} />
+            <Route path="admin" element={<AdminPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
