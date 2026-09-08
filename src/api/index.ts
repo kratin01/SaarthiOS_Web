@@ -122,8 +122,8 @@ export const dashboardApi = {
 };
 
 export const adminApi = {
-  overview: (days = 30) =>
-    http.get<AdminOverview>('/admin/overview', { params: { days } }).then((r) => r.data)
+  overview: (days = 30, offset = 0) =>
+    http.get<AdminOverview>('/admin/overview', { params: { days, offset } }).then((r) => r.data)
 };
 
 export const expenseApi = {

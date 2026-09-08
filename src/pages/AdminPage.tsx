@@ -10,13 +10,15 @@ import { useFetch } from '@/hooks/useFetch';
 import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
+import { Pager } from '@/components/ui/Pager';
 import { ErrorState, Loading } from '@/components/ui/States';
 import { BarsChart } from '@/components/charts/Charts';
 import { formatDay, formatRelativeDay } from '@/lib/format';
 
 export function AdminPage() {
   const [days, setDays] = useState(30);
-  const { data, loading, error, reload } = useFetch(() => adminApi.overview(days), [days]);
+  const [offset, setOffset] = useState(0);
+  const { data, loading, error, reload } = useFetch(() => adminApi.overview(days, offset), [days, offset]);
 
   return (
     <Page>
@@ -29,7 +31,10 @@ export function AdminPage() {
               <button
                 key={option}
                 type="button"
-                onClick={() => setDays(option)}
+                onClick={() => {
+                  setDays(option);
+                  setOffset(0);
+                }}
                 className={`chip ${days === option ? 'chip-active' : ''}`}
               >
                 {option} days
@@ -110,7 +115,11 @@ export function AdminPage() {
             </Card>
           )}
 
-          <Card title="People" description={`${data.people.length} accounts, newest first`} bodyClassName="p-0 sm:p-0">
+          <Card
+            title="People"
+            description={`${data.page.total} accounts, newest first`}
+            bodyClassName="p-0 sm:p-0"
+          >
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-sm">
                 <thead>
@@ -142,6 +151,14 @@ export function AdminPage() {
                 </tbody>
               </table>
             </div>
+
+            <Pager
+              offset={data.page.offset}
+              limit={data.page.limit}
+              total={data.page.total}
+              onChange={setOffset}
+              noun="accounts"
+            />
           </Card>
         </>
       )}

@@ -45,6 +45,7 @@ export interface AdminOverview {
     neverUsed: number;
   };
   people: AdminPerson[];
+  page: PageInfo;
   totals: { expenses: number; meals: number; investments: number; messages: number; agents: number };
   ai: {
     runs: number;
