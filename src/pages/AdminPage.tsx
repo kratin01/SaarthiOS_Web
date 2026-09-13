@@ -13,6 +13,7 @@ import { Stat } from '@/components/ui/Stat';
 import { Pager } from '@/components/ui/Pager';
 import { ErrorState, Loading } from '@/components/ui/States';
 import { BarsChart } from '@/components/charts/Charts';
+import { AiProviderCard } from '@/components/settings/AiProviderCard';
 import { formatDay, formatRelativeDay } from '@/lib/format';
 
 export function AdminPage() {
@@ -116,6 +117,16 @@ export function AdminPage() {
               </ul>
             </Card>
           )}
+
+          <div className="mb-6">
+            <AiProviderCard
+              api={adminApi.ai}
+              title="AI for everyone"
+              description="Used by every account that has not set its own key"
+              savedMessage="Saved. Everyone on the default is now using this."
+              resetLabel="Fall back to server config"
+            />
+          </div>
 
           <Card
             title="People"

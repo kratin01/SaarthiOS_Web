@@ -123,7 +123,23 @@ export const dashboardApi = {
 
 export const adminApi = {
   overview: (days = 30, offset = 0) =>
-    http.get<AdminOverview>('/admin/overview', { params: { days, offset } }).then((r) => r.data)
+    http.get<AdminOverview>('/admin/overview', { params: { days, offset } }).then((r) => r.data),
+
+  /** The AI used by everyone who has not set their own key. Same shape as `aiApi`. */
+  ai: {
+    settings: () => http.get<AiSettingsResponse>('/admin/ai').then((r) => r.data),
+
+    save: (body: { provider: string; model?: string; baseUrl?: string; apiKey?: string }) =>
+      http.put<AiSettingsResponse>('/admin/ai', body).then((r) => r.data),
+
+    reset: () => http.delete<AiSettingsResponse>('/admin/ai').then((r) => r.data),
+
+    models: (body: { provider: string; model?: string; baseUrl?: string; apiKey?: string }) =>
+      http.post<{ models: string[] }>('/admin/ai/models', body).then((r) => r.data.models),
+
+    test: (body: { provider: string; model?: string; baseUrl?: string; apiKey?: string }) =>
+      http.post<{ ok: boolean; model: string; ms: number }>('/admin/ai/test', body).then((r) => r.data)
+  }
 };
 
 export const expenseApi = {

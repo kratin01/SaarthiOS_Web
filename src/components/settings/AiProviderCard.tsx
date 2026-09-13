@@ -15,7 +15,33 @@ import { Spinner } from '@/components/ui/States';
 import { CheckIcon, SparkIcon } from '@/components/ui/Icons';
 import type { AiSettingsResponse, ProviderOption } from '@/types';
 
-export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
+/** The five calls the card needs, so it can drive personal or shared settings. */
+export interface AiSettingsApi {
+  settings: () => Promise<AiSettingsResponse>;
+  save: (draft: { provider: string; model: string; baseUrl: string; apiKey: string }) => Promise<AiSettingsResponse>;
+  reset: () => Promise<AiSettingsResponse>;
+  models: (draft: { provider: string; model: string; baseUrl: string; apiKey: string }) => Promise<string[]>;
+  test: (draft: { provider: string; model: string; baseUrl: string; apiKey: string }) => Promise<{ model: string; ms: number }>;
+}
+
+interface Props {
+  onSaved?: () => void;
+  /** Defaults to the signed-in user's own settings. */
+  api?: AiSettingsApi;
+  title?: string;
+  description?: string;
+  savedMessage?: string;
+  resetLabel?: string;
+}
+
+export function AiProviderCard({
+  onSaved,
+  api = aiApi,
+  title = 'AI provider',
+  description = 'Change your key or model here — no redeploy needed',
+  savedMessage = 'Saved. Your agents will use this from the next message.',
+  resetLabel = 'Remove my key'
+}: Props) {
   const [data, setData] = useState<AiSettingsResponse | null>(null);
   const [provider, setProvider] = useState('');
   const [model, setModel] = useState('');
@@ -28,7 +54,7 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
   const [notice, setNotice] = useState<string | null>(null);
 
   useEffect(() => {
-    aiApi
+    api
       .settings()
       .then((settings) => {
         setData(settings);
@@ -37,11 +63,13 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
         setBaseUrl(settings.baseUrl || '');
       })
       .catch((err) => setError(errorMessage(err, 'Could not load AI settings.')));
+    // `api` is a stable module object, so this runs once per card.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (!data) {
     return (
-      <Card title="AI provider">
+      <Card title={title}>
         <div className="flex justify-center py-6">
           <Spinner />
         </div>
@@ -79,31 +107,31 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
 
   const loadModels = () =>
     run('models', async () => {
-      const models = await aiApi.models(draft);
+      const models = await api.models(draft);
       setLiveModels(models);
       return `${models.length} models available with this key.`;
     });
 
   const test = () =>
     run('test', async () => {
-      const result = await aiApi.test(draft);
+      const result = await api.test(draft);
       return `Works — ${result.model} replied in ${(result.ms / 1000).toFixed(1)}s.`;
     });
 
   const save = () =>
     run('save', async () => {
-      const saved = await aiApi.save(draft);
+      const saved = await api.save(draft);
       // Merged, not replaced: the catalogue this form is built from must
       // survive even if a response ever comes back without it.
       setData((prev) => ({ ...prev, ...saved }));
       setApiKey('');
       onSaved?.();
-      return 'Saved. Your agents will use this from the next message.';
+      return savedMessage;
     });
 
   const reset = () =>
     run('reset', async () => {
-      const saved = await aiApi.reset();
+      const saved = await api.reset();
       setData((prev) => ({ ...prev, ...saved }));
       setProvider(saved.provider || 'gemini');
       setModel('');
@@ -120,8 +148,8 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
 
   return (
     <Card
-      title="AI provider"
-      description="Change your key or model here — no redeploy needed"
+      title={title}
+      description={description}
       action={
         <span
           className={`inline-flex items-center gap-1.5 text-xs ${
@@ -138,7 +166,17 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
           <p className="rounded-xl border border-line bg-canvas px-3 py-2 text-xs text-muted">
             Currently using <span className="font-medium text-ink">{data.label}</span> ·{' '}
             <span className="font-medium text-ink">{data.model}</span>
-            {data.source === 'env' && ' — from the server default, not your own key'}
+            {data.source === 'shared' && ' — the shared default, not your own key'}
+            {data.source === 'env' && ' — from the server config, not your own key'}
+            {typeof data.usersOnDefault === 'number' && (
+              <>
+                <br />
+                {data.usersOnDefault === 1
+                  ? '1 account is on this default.'
+                  : `${data.usersOnDefault} accounts are on this default.`}
+                {data.updatedBy && ` Last changed by ${data.updatedBy}.`}
+              </>
+            )}
           </p>
         )}
 
@@ -272,9 +310,9 @@ export function AiProviderCard({ onSaved }: { onSaved?: () => void }) {
             {busy === 'test' ? <Spinner className="h-4 w-4" /> : <SparkIcon className="h-4 w-4" />}
             Test connection
           </button>
-          {data.source === 'user' && (
+          {(data.source === 'user' || data.source === 'shared') && (
             <button type="button" className="btn-quiet" onClick={reset} disabled={busy !== null}>
-              Remove my key
+              {resetLabel}
             </button>
           )}
         </div>

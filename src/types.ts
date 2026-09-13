@@ -325,14 +325,18 @@ export interface AiStatus {
   provider: string;
   label: string;
   model: string;
-  /** `user` = saved in Settings, `env` = the deployment default. */
-  source: 'user' | 'env';
+  /** `user` = saved in Settings, `shared` = the admin's default, `env` = from the server config. */
+  source: 'user' | 'shared' | 'env';
   reason: string | null;
   keyHint: string;
   baseUrl: string;
   lastTestedAt: string | null;
   lastTestOk: boolean | null;
   envFallbackAvailable: boolean;
+  /** Only sent for the shared default. */
+  updatedBy?: string;
+  updatedAt?: string | null;
+  usersOnDefault?: number;
 }
 
 export interface ProviderOption {
