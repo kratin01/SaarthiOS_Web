@@ -50,4 +50,16 @@ describe('RichText', () => {
     expect(hasTable('| a | b |\n| --- | --- |\n| 1 | 2 |')).toBe(true);
     expect(hasTable('no table here | just a pipe')).toBe(false);
   });
+
+  // Byte-for-byte what DeepSeek stored for a real question. Its divider has no
+  // spaces, unlike the `| --- |` Gemini writes.
+  it('handles a real stored reply', () => {
+    const stored =
+      "Here are all the orders for your mumma that you logged.\n\n| Date | Amount | Note |\n|------|--------|------|\n| 2026-09-13 | INR 212 | order for mumma |\n| 2026-09-09 | INR 140 | for mumma |\n\nThat's all the entries I found in your data.";
+
+    const { container } = render(<RichText text={stored} />);
+    expect(hasTable(stored)).toBe(true);
+    expect(container.querySelectorAll('tbody tr')).toHaveLength(2);
+    expect(container.textContent).not.toContain('|---');
+  });
 });
