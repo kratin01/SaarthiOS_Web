@@ -2,17 +2,20 @@
 import type { AgentRun } from '@/types';
 import { formatTime } from '@/lib/format';
 import { AgentActivity } from './AgentActivity';
+import { RichText, hasTable } from './RichText';
 
 export function MessageTurn({ run }: { run: AgentRun }) {
   const failed = run.status === 'failed';
   const asking = run.intent === 'clarify';
+  // A table needs room; the usual reply reads better kept narrow.
+  const wide = hasTable(run.reply ?? '');
 
   return (
     <div className="space-y-3 animate-fade-up">
       <UserBubble text={run.message} />
 
       <div className="flex justify-start">
-        <div className="max-w-[90%] space-y-2 sm:max-w-[75%]">
+        <div className={`space-y-2 ${wide ? 'w-full' : 'max-w-[90%] sm:max-w-[75%]'}`}>
           <div
             className={`rounded-2xl rounded-bl-md border px-4 py-2.5 text-sm ${
               failed
@@ -22,7 +25,7 @@ export function MessageTurn({ run }: { run: AgentRun }) {
                   : 'border-line bg-surface text-ink'
             }`}
           >
-            {run.reply || 'No reply.'}
+            {run.reply ? <RichText text={run.reply} /> : 'No reply.'}
           </div>
 
           {run.steps.length > 1 && <AgentActivity run={run} />}
