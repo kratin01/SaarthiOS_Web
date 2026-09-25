@@ -13,9 +13,30 @@ export function formatMoney(amount: number, currency = 'INR', compact = false): 
 }
 
 export function currencySymbol(currency: string): string {
-  const symbols: Record<string, string> = { INR: '₹', USD: '$', EUR: '€', GBP: '£', AED: 'د.إ' };
+  const symbols: Record<string, string> = {
+    INR: '₹',
+    USD: '$',
+    EUR: '€',
+    GBP: '£',
+    AED: 'د.إ',
+    RUB: '₽'
+  };
   return symbols[currency] ?? `${currency} `;
 }
+
+const MONTH_RANGE = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** `2026-08` — one calendar month, used as a range of its own. */
+export const isMonthRange = (value: string) => MONTH_RANGE.test(value);
+
+/** `2026-08` → `August 2026`. */
+export const monthRangeLabel = (value: string) => {
+  const [year, month] = value.split('-').map(Number);
+  return new Date(year, month - 1, 1).toLocaleDateString('en-IN', {
+    month: 'long',
+    year: 'numeric'
+  });
+};
 
 /** `31 Aug` — short and scannable in lists and axes. */
 export const formatDay = (value: string | Date) =>

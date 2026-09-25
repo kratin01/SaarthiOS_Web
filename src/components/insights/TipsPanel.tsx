@@ -12,6 +12,7 @@ import { useServiceNotice } from '@/context/StatusContext';
 import { InlineNotice } from '@/components/ui/Notices';
 import { Spinner } from '@/components/ui/States';
 import { SparkIcon } from '@/components/ui/Icons';
+import { isMonthRange, monthRangeLabel } from '@/lib/format';
 import type { Range, TipsResponse } from '@/types';
 
 interface Props {
@@ -111,12 +112,14 @@ export function TipsPanel({ domain, range, accent, disabled = false }: Props) {
   );
 }
 
+const RANGE_WORDS: Record<string, string> = {
+  today: 'today',
+  week: 'the last 7 days',
+  month: 'this month',
+  last_month: 'last month',
+  year: 'this year',
+  all: 'all time'
+};
+
 const rangeWord = (range: Range) =>
-  ({
-    today: 'today',
-    week: 'the last 7 days',
-    month: 'this month',
-    last_month: 'last month',
-    year: 'this year',
-    all: 'all time'
-  })[range] ?? 'this period';
+  isMonthRange(range) ? monthRangeLabel(range) : (RANGE_WORDS[range] ?? 'this period');

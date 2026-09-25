@@ -353,7 +353,14 @@ export interface AiSettingsResponse extends AiStatus {
   providers: ProviderOption[];
 }
 
-export type Range = 'today' | 'week' | 'month' | 'last_month' | 'year' | 'all';
+export type PresetRange = 'today' | 'week' | 'month' | 'last_month' | 'year' | 'all';
+
+/**
+ * A preset window, or a single calendar month such as `2026-08`.
+ * `string & {}` keeps the preset names in autocomplete while letting a month
+ * key through — the server treats both the same way.
+ */
+export type Range = PresetRange | (string & {});
 
 /** Returned by every list endpoint so the UI can say "showing 50 of 143". */
 export interface PageInfo {

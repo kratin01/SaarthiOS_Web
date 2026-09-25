@@ -8,8 +8,16 @@ import { Card } from '@/components/ui/Card';
 import { AiProviderCard } from '@/components/settings/AiProviderCard';
 import { CustomAgentsCard } from '@/components/settings/CustomAgentsCard';
 import { Spinner } from '@/components/ui/States';
+import { currencySymbol } from '@/lib/format';
 
-const CURRENCIES = ['INR', 'USD', 'EUR', 'GBP', 'AED'];
+const CURRENCIES = [
+  { code: 'INR', label: 'Indian Rupee' },
+  { code: 'USD', label: 'US Dollar' },
+  { code: 'EUR', label: 'Euro' },
+  { code: 'GBP', label: 'British Pound' },
+  { code: 'AED', label: 'UAE Dirham' },
+  { code: 'RUB', label: 'Russian Ruble' }
+];
 
 export function SettingsPage() {
   const { user, setUser, logout } = useAuth();
@@ -75,8 +83,8 @@ export function SettingsPage() {
                 onChange={(e) => setCurrency(e.target.value)}
               >
                 {CURRENCIES.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
+                  <option key={value.code} value={value.code}>
+                    {value.code} · {value.label} ({currencySymbol(value.code)})
                   </option>
                 ))}
               </select>

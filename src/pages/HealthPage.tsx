@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
 import { RangePicker } from '@/components/ui/RangePicker';
+import { ReportButton } from '@/components/ui/ReportButton';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
 import { LoadMore } from '@/components/ui/LoadMore';
 import { BodyProfileCard } from '@/components/health/BodyProfileCard';
@@ -63,8 +64,9 @@ export function HealthPage() {
 
       <BodyProfileCard />
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <RangePicker value={range} onChange={setRange} />
+        <ReportButton download={mealApi.report} range={range} empty={!data?.items.length} />
       </div>
 
       <TipsPanel domain="health" range={range} accent="#6F9E7E" disabled={!data?.items.length} />

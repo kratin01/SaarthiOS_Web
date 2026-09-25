@@ -60,3 +60,46 @@ export function errorMessage(error: unknown, fallback = 'Something went wrong'):
   }
   return fallback;
 }
+
+/**
+ * Fetches a file and hands it straight to the browser.
+ *
+ * A failed response also arrives as a Blob, so it is read back into JSON first:
+ * without that every problem would show up as the generic fallback message.
+ */
+export async function downloadFile(
+  url: string,
+  params: Record<string, unknown> = {},
+  fallbackName = 'download'
+): Promise<void> {
+  try {
+    const response = await http.get<Blob>(url, {
+      params,
+      responseType: 'blob',
+      timeout: 120_000
+    });
+    const header = String(response.headers['content-disposition'] ?? '');
+    saveBlob(response.data, /filename="?([^";]+)"?/i.exec(header)?.[1] ?? fallbackName);
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+      try {
+        error.response.data = JSON.parse(await error.response.data.text());
+      } catch {
+        // Not JSON, so leave it alone and let the fallback message stand.
+      }
+    }
+    throw error;
+  }
+}
+
+function saveBlob(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  // Revoking immediately cancels the download in Safari.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}

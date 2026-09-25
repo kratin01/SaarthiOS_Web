@@ -85,6 +85,39 @@ export const UploadIcon = (p: Props) => (
   </Svg>
 );
 
+export const DownloadIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M12 4v12" />
+    <path d="M8 12l4 4 4-4" />
+    <path d="M4 16v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+  </Svg>
+);
+
+export const ChevronDownIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M6 9l6 6 6-6" />
+  </Svg>
+);
+
+export const ChevronLeftIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M15 6l-6 6 6 6" />
+  </Svg>
+);
+
+export const ChevronRightIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M9 6l6 6-6 6" />
+  </Svg>
+);
+
+export const CalendarIcon = (p: Props) => (
+  <Svg {...p}>
+    <rect x="3" y="5" width="18" height="16" rx="2" />
+    <path d="M3 10h18M8 3v4M16 3v4" />
+  </Svg>
+);
+
 export const TrashIcon = (p: Props) => (
   <Svg {...p}>
     <path d="M4 7h16M10 11v6M14 11v6" />

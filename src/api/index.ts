@@ -2,7 +2,7 @@
  * Every backend call the app makes, grouped by feature.
  * Components import from here and never touch axios directly.
  */
-import { http } from './http';
+import { downloadFile, http } from './http';
 import type {
   AdminOverview,
   AgentRun,
@@ -158,6 +158,10 @@ export const expenseApi = {
     body: Partial<{ amount: number; category: string; merchant: string; note: string; date: string }>
   ) => http.patch<{ expense: Expense }>(`/expenses/${id}`, body).then((r) => r.data.expense),
 
+  /** Downloads the period as a spreadsheet. The server names the file. */
+  report: (range: Range = 'month') =>
+    downloadFile('/expenses/report', { range }, 'Expenses.xlsx'),
+
   remove: (id: string) => http.delete(`/expenses/${id}`).then(() => undefined)
 };
 
@@ -185,6 +189,9 @@ export const mealApi = {
       date: string;
     }>
   ) => http.patch<{ meal: Meal }>(`/meals/${id}`, body).then((r) => r.data.meal),
+
+  /** Downloads the period as a spreadsheet. The server names the file. */
+  report: (range: Range = 'month') => downloadFile('/meals/report', { range }, 'Health.xlsx'),
 
   remove: (id: string) => http.delete(`/meals/${id}`).then(() => undefined)
 };
