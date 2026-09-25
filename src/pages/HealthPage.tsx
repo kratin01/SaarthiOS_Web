@@ -75,6 +75,19 @@ export function HealthPage() {
         <Loading label="Loading meals" />
       ) : error || !data ? (
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
+      ) : data.summary.mealCount === 0 ? (
+        <Card>
+          <EmptyState
+            title={`Nothing logged for ${data.summary.range}`}
+            description="Pick a different period above, or log what you ate in it."
+            action={
+              <button type="button" className="btn-primary" onClick={() => setAdding(true)}>
+                <PlusIcon className="h-4 w-4" />
+                Log meal
+              </button>
+            }
+          />
+        </Card>
       ) : (
         <>
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

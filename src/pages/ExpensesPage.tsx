@@ -89,6 +89,19 @@ export function ExpensesPage() {
         <Loading label="Loading expenses" />
       ) : error || !data ? (
         <ErrorState message={error ?? 'No data'} onRetry={reload} />
+      ) : data.summary.count === 0 ? (
+        <Card>
+          <EmptyState
+            title={`Nothing recorded for ${data.summary.range}`}
+            description="Pick a different period above, or add what you spent in it."
+            action={
+              <button type="button" className="btn-primary" onClick={() => setAdding(true)}>
+                <PlusIcon className="h-4 w-4" />
+                Add expense
+              </button>
+            }
+          />
+        </Card>
       ) : (
         <>
           <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-3">
