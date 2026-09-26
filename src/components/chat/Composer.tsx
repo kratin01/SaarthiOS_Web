@@ -46,7 +46,7 @@ export function Composer({
     if (!el) return;
     el.style.height = 'auto';
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
-  }, [value, voice.interim]);
+  }, [value, voice.preview]);
 
   const busy = Boolean(disabled) || sending;
 
@@ -59,16 +59,18 @@ export function Composer({
       )}
       {voice.listening && (
         <p className="flex items-center gap-2 px-1 text-xs text-muted" role="status">
-          <span className="relative flex h-2 w-2">
+          <span className="relative flex h-2 w-2 shrink-0">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-expense/60" />
             <span className="relative inline-flex h-2 w-2 rounded-full bg-expense" />
           </span>
-          {voice.interim ? voice.interim : 'Listening… speak naturally, Hindi or English.'}
+          <span className="truncate">
+            {voice.preview || 'Listening… speak naturally, Hindi or English.'}
+          </span>
         </p>
       )}
       {voice.busy && (
         <p className="px-1 text-xs text-muted" role="status">
-          Writing that down…
+          Writing that down properly…
         </p>
       )}
 

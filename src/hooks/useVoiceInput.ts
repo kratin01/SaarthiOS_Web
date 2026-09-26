@@ -1,19 +1,21 @@
 /**
  * Speaking instead of typing.
  *
- * Two engines, because one is not enough:
+ * Both engines run at once, and they do different jobs:
  *
- * 1. The browser's own `SpeechRecognition`. Free, instant, and it streams words
- *    as you say them so mistakes are visible immediately. Chrome, Edge and
- *    Safari have it — Firefox does not, and neither does an iOS web app once it
- *    has been added to the home screen.
- * 2. Recording the clip and sending it to the server, which transcribes it with
- *    the AI provider already configured. Slower, but it works everywhere and it
- *    is noticeably better at a sentence that switches between Hindi and English
- *    halfway through.
+ * - The browser's `SpeechRecognition` streams words while you talk, so there is
+ *   something on screen immediately. It is only a preview. Its `en-IN` model
+ *   mangles code-switched speech — "aaj maine" comes back as "Aa Mane" — so its
+ *   text is never what gets used.
+ * - Meanwhile the clip is recorded and sent to the server, which transcribes it
+ *   with the configured AI provider. That costs a second or two and is far
+ *   better at a sentence that changes language halfway through.
  *
- * The first is used when it exists, the second otherwise. Neither ever sends a
- * message — the text lands in the box for the user to read first.
+ * The server's answer wins. If it cannot answer — no provider, no network, a
+ * provider with no audio support — whatever the browser heard is used instead,
+ * so pressing the button always produces something.
+ *
+ * Nothing is ever sent on its own; the text lands in the message box to be read.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { chatApi } from '@/api';
@@ -21,12 +23,11 @@ import { errorMessage } from '@/api/http';
 
 export type VoiceState = 'idle' | 'listening' | 'transcribing';
 
-/**
- * Indian English. It is the closest preset for Hinglish: the acoustic model is
- * trained on Indian speakers and it already knows the Hindi words that turn up
- * in everyday English sentences.
- */
+/** Closest preset for Hinglish: Indian-accented English with Hindi loanwords. */
 const LANG = 'en-IN';
+
+/** Below this there is no speech in the clip, only the click of the button. */
+const MIN_CLIP_BYTES = 1200;
 
 type Recogniser = {
   lang: string;
@@ -59,32 +60,43 @@ const pickMimeType = () =>
 export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
-  const [interim, setInterim] = useState('');
+  const [preview, setPreview] = useState('');
 
   const recogniser = useRef<Recogniser | null>(null);
   const recorder = useRef<MediaRecorder | null>(null);
+  const stream = useRef<MediaStream | null>(null);
   const chunks = useRef<Blob[]>([]);
+  /** What the browser heard, kept only in case the server cannot answer. */
+  const heard = useRef('');
   /** Distinguishes "the user pressed stop" from "the engine gave up". */
   const wanted = useRef(false);
 
-  const supported = Boolean(SpeechRecognitionCtor()) || canRecord();
+  const supported = canRecord() || Boolean(SpeechRecognitionCtor());
 
-  const finish = useCallback(() => {
-    setState('idle');
-    setInterim('');
+  const reset = useCallback(() => {
     wanted.current = false;
+    heard.current = '';
+    setPreview('');
+    setState('idle');
   }, []);
 
-  // ---- Engine 1: the browser ------------------------------------------------
+  const releaseMic = useCallback(() => {
+    stream.current?.getTracks().forEach((track) => track.stop());
+    stream.current = null;
+  }, []);
 
-  const startNative = useCallback(
-    (Ctor: new () => Recogniser) => {
+  /** The preview engine. Its transcript is a fallback, never the answer. */
+  const startPreview = useCallback(() => {
+    const Ctor = SpeechRecognitionCtor();
+    if (!Ctor) return;
+
+    try {
       const engine = new Ctor();
       engine.lang = LANG;
       engine.interimResults = true;
       engine.maxAlternatives = 1;
-      // Ignored on Android Chrome, which stops at the first pause regardless —
-      // the `onend` restart below is what actually keeps it going there.
+      // Ignored on Android Chrome, which stops at every pause — the restart in
+      // `onend` is what actually keeps it running there.
       engine.continuous = true;
 
       engine.onresult = (event: any) => {
@@ -95,53 +107,66 @@ export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
           if (result.isFinal) settled += result[0].transcript;
           else pending += result[0].transcript;
         }
-        if (settled.trim()) onText(settled.trim());
-        setInterim(pending);
+        if (settled) heard.current = `${heard.current} ${settled}`.trim();
+        setPreview(`${heard.current} ${pending}`.trim());
       };
 
-      engine.onerror = (event: any) => {
-        // `no-speech` and `aborted` are what a quiet room and the stop button
-        // look like. Neither is worth showing to anyone.
-        if (event.error === 'no-speech' || event.error === 'aborted') return;
-        setError(
-          event.error === 'not-allowed'
-            ? 'Microphone access was blocked. Allow it in your browser settings.'
-            : 'Could not hear that. Try again.'
-        );
-        wanted.current = false;
-      };
+      // A failing preview is not worth a message — the recording is the thing
+      // that matters and it is still running.
+      engine.onerror = () => {};
 
       engine.onend = () => {
-        // Android stops after every pause; restart while the button is still on.
-        if (wanted.current) {
-          try {
-            engine.start();
-            return;
-          } catch {
-            // Already restarting — fall through and close cleanly.
-          }
+        if (!wanted.current) return;
+        try {
+          engine.start();
+        } catch {
+          // Already restarting.
         }
-        finish();
       };
 
       recogniser.current = engine;
-      wanted.current = true;
-      setError(null);
-      setState('listening');
       engine.start();
-    },
-    [finish, onText]
-  );
+    } catch {
+      recogniser.current = null;
+    }
+  }, []);
 
-  // ---- Engine 2: record, then ask the server --------------------------------
+  const start = useCallback(async () => {
+    if (state !== 'idle') return;
+    setError(null);
+    heard.current = '';
+    setPreview('');
 
-  const startRecording = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-    });
+    // Without microphone access the browser engine is the only option left.
+    if (!canRecord()) {
+      if (!SpeechRecognitionCtor()) {
+        setError('This browser cannot record audio. Type your message instead.');
+        return;
+      }
+      wanted.current = true;
+      setState('listening');
+      startPreview();
+      return;
+    }
+
+    try {
+      stream.current = await navigator.mediaDevices.getUserMedia({
+        audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+      });
+    } catch (err) {
+      setError(
+        (err as Error)?.name === 'NotAllowedError'
+          ? 'Microphone access was blocked. Allow it in your browser settings.'
+          : 'Could not start the microphone.'
+      );
+      return;
+    }
 
     const mimeType = pickMimeType();
-    const engine = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+    const engine = new MediaRecorder(
+      stream.current,
+      mimeType ? { mimeType, audioBitsPerSecond: 32_000 } : undefined
+    );
     chunks.current = [];
 
     engine.ondataavailable = (event) => {
@@ -149,13 +174,14 @@ export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
     };
 
     engine.onstop = async () => {
-      // Releases the microphone, and with it the browser's recording indicator.
-      stream.getTracks().forEach((track) => track.stop());
-
+      releaseMic();
       const clip = new Blob(chunks.current, { type: engine.mimeType || 'audio/webm' });
       chunks.current = [];
-      if (clip.size < 1200) {
-        finish();
+      const fallback = heard.current.trim();
+
+      if (clip.size < MIN_CLIP_BYTES) {
+        if (fallback) onText(fallback);
+        reset();
         return;
       }
 
@@ -163,59 +189,42 @@ export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
       try {
         const text = await chatApi.transcribe(clip, `voice-note.${extensionFor(engine.mimeType)}`);
         if (text.trim()) onText(text.trim());
+        else if (fallback) onText(fallback);
         else setError('That came through silent. Try again.');
       } catch (err) {
-        setError(errorMessage(err, 'Could not transcribe that. Try typing instead.'));
+        // The browser already heard something usable, so use it rather than
+        // making the user say the whole thing over again.
+        if (fallback) onText(fallback);
+        else setError(errorMessage(err, 'Could not transcribe that. Try typing instead.'));
       } finally {
-        finish();
+        reset();
       }
     };
 
     recorder.current = engine;
     wanted.current = true;
-    setError(null);
     setState('listening');
     engine.start();
-  }, [finish, onText]);
-
-  const start = useCallback(async () => {
-    if (state !== 'idle') return;
-    setError(null);
-
-    const Ctor = SpeechRecognitionCtor();
-    if (Ctor) {
-      try {
-        startNative(Ctor);
-        return;
-      } catch {
-        // Some builds expose the constructor and then refuse to start it.
-      }
-    }
-
-    if (!canRecord()) {
-      setError('This browser cannot record audio. Type your message instead.');
-      return;
-    }
-
-    try {
-      await startRecording();
-    } catch (err) {
-      setError(
-        (err as Error)?.name === 'NotAllowedError'
-          ? 'Microphone access was blocked. Allow it in your browser settings.'
-          : 'Could not start the microphone.'
-      );
-      finish();
-    }
-  }, [finish, state, startNative, startRecording]);
+    startPreview();
+  }, [releaseMic, reset, startPreview, state]);
 
   const stop = useCallback(() => {
     wanted.current = false;
     recogniser.current?.stop();
-    if (recorder.current?.state === 'recording') recorder.current.stop();
-    // The recording path reports back from `onstop`, so it stays busy for now.
-    if (!recorder.current) finish();
-  }, [finish]);
+    recogniser.current = null;
+
+    if (recorder.current?.state === 'recording') {
+      // `onstop` takes it from here, including the transcription request.
+      recorder.current.stop();
+      recorder.current = null;
+      return;
+    }
+
+    // Preview-only mode: what the browser heard is all there is.
+    const fallback = heard.current.trim();
+    if (fallback) onText(fallback);
+    reset();
+  }, [onText, reset]);
 
   // Leaving the page mid-sentence must not leave the microphone open.
   useEffect(
@@ -223,6 +232,7 @@ export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
       wanted.current = false;
       recogniser.current?.abort();
       if (recorder.current?.state === 'recording') recorder.current.stop();
+      stream.current?.getTracks().forEach((track) => track.stop());
     },
     []
   );
@@ -232,9 +242,8 @@ export function useVoiceInput({ onText }: { onText: (text: string) => void }) {
     state,
     listening: state === 'listening',
     busy: state === 'transcribing',
-    interim,
+    preview,
     error,
-    dismissError: () => setError(null),
     start,
     stop,
     toggle: () => (state === 'idle' ? void start() : stop())
