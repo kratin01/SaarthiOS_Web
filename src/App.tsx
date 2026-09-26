@@ -13,6 +13,7 @@ import { CustomAgentPage } from '@/pages/CustomAgentPage';
 import { ExpensesPage } from '@/pages/ExpensesPage';
 import { HealthPage } from '@/pages/HealthPage';
 import { InvestmentsPage } from '@/pages/InvestmentsPage';
+import { SubscriptionsPage } from '@/pages/SubscriptionsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { AdminPage } from '@/pages/AdminPage';
 
@@ -38,6 +39,7 @@ export default function App() {
             <Route path="expenses" element={<ExpensesPage />} />
             <Route path="health" element={<HealthPage />} />
             <Route path="investments" element={<InvestmentsPage />} />
+          <Route path="subscriptions" element={<SubscriptionsPage />} />
             <Route path="a/:slug" element={<CustomAgentPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="admin" element={<AdminPage />} />

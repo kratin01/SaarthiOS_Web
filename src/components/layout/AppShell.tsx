@@ -16,6 +16,7 @@ import {
   LogoutIcon,
   MenuIcon,
   MoonIcon,
+  RepeatIcon,
   SettingsIcon,
   SunIcon,
   TargetIcon,
@@ -37,7 +38,8 @@ const NAV: NavItem[] = [
   { to: '/chat', label: 'Assistant', icon: ChatIcon },
   { to: '/expenses', label: 'Expenses', icon: WalletIcon },
   { to: '/health', label: 'Health', icon: LeafIcon },
-  { to: '/investments', label: 'Investments', icon: TrendIcon }
+  { to: '/investments', label: 'Investments', icon: TrendIcon },
+  { to: '/subscriptions', label: 'Subscriptions', icon: RepeatIcon }
 ];
 
 const SETTINGS_NAV: NavItem = { to: '/settings', label: 'Settings', icon: SettingsIcon };

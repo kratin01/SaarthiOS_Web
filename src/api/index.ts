@@ -32,6 +32,8 @@ import type {
   PageInfo,
   Range,
   RecentItem,
+  Subscription,
+  SubscriptionSummary,
   ThreadPageInfo,
   TipsResponse,
   User
@@ -86,6 +88,18 @@ export const chatApi = {
 
   removeConversation: (id: string) =>
     http.delete(`/chat/conversations/${id}`).then(() => undefined),
+
+  /**
+   * Voice note in, text out. Used only where the browser has no speech
+   * recognition of its own — see `useVoiceInput`.
+   */
+  transcribe: (clip: Blob, filename = 'voice-note.webm') => {
+    const form = new FormData();
+    form.append('audio', clip, filename);
+    return http
+      .post<{ text: string }>('/chat/transcribe', form, { timeout: 60_000 })
+      .then((r) => r.data.text);
+  },
 
   status: () => http.get<AiStatus>('/chat/status').then((r) => r.data)
 };
@@ -198,7 +212,7 @@ export const mealApi = {
 
 export const investmentApi = {
   list: (range: Range = 'year', offset = 0) =>
-    http
+      http
       .get<{ items: Investment[]; summary: InvestmentSummary; page: PageInfo }>('/investments', {
         params: { range, offset }
       })
@@ -220,6 +234,47 @@ export const investmentApi = {
       .then((r) => r.data),
 
   remove: (id: string) => http.delete(`/investments/${id}`).then(() => undefined)
+};
+
+/**
+ * Recurring services. There is no `range`: a subscription either runs today or
+ * it does not, so the server always answers with the full picture.
+ */
+export const subscriptionApi = {
+  list: (status: 'all' | 'active' | 'cancelled' = 'all', offset = 0) =>
+    http
+      .get<{ items: Subscription[]; summary: SubscriptionSummary; page: PageInfo }>(
+        '/subscriptions',
+        { params: { status, offset } }
+      )
+      .then((r) => r.data),
+
+  create: (body: {
+    name: string;
+    amount: number;
+    cycle: string;
+    category?: string;
+    note?: string;
+    startedOn?: string;
+  }) => http.post<{ subscription: Subscription }>('/subscriptions', body).then((r) => r.data.subscription),
+
+  update: (
+    id: string,
+    body: Partial<{
+      name: string;
+      amount: number;
+      cycle: string;
+      category: string;
+      note: string;
+      startedOn: string;
+      endedOn: string | null;
+    }>
+  ) =>
+    http
+      .patch<{ subscription: Subscription }>(`/subscriptions/${id}`, body)
+      .then((r) => r.data.subscription),
+
+  remove: (id: string) => http.delete(`/subscriptions/${id}`).then(() => undefined)
 };
 
 /** Agents the user built themselves. `max` is the server's configured limit. */

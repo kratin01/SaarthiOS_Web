@@ -145,6 +145,53 @@ export interface Investment {
   source: 'manual' | 'chat';
 }
 
+export type BillingCycle = 'weekly' | 'monthly' | 'quarterly' | 'yearly';
+
+/**
+ * Recorded once; everything below `source` is worked out by the server from
+ * `startedOn` and `cycle` rather than stored.
+ */
+export interface Subscription {
+  _id: string;
+  name: string;
+  amount: number;
+  cycle: BillingCycle;
+  category: string;
+  startedOn: string;
+  endedOn: string | null;
+  note: string;
+  source: 'manual' | 'chat' | 'import';
+  active: boolean;
+  /** How many times it has charged since it started. */
+  charges: number;
+  paidToDate: number;
+  monthly: number;
+  yearly: number;
+  nextChargeOn: string | null;
+}
+
+export interface SubscriptionSummary {
+  monthly: number;
+  yearly: number;
+  daily: number;
+  paidToDate: number;
+  activeCount: number;
+  cancelledCount: number;
+  longestRunning: { _id: string; name: string; paidToDate: number; charges: number; since: string }[];
+  byCategory: { category: string; monthly: number; count: number }[];
+  upcoming: {
+    _id: string;
+    name: string;
+    amount: number;
+    cycle: BillingCycle;
+    on: string;
+    inDays: number;
+  }[];
+  dueThisMonth: number;
+  /** Null until there is both a subscription and a month of spending to compare. */
+  shareOfSpending: { spent: number; month: string; percent: number } | null;
+}
+
 /** One holding priced against the market right now. */
 export interface Holding {
   _id: string;
@@ -233,7 +280,13 @@ export interface AgentRun {
   intent: 'record' | 'query' | 'chat' | 'clarify';
   agentsUsed: string[];
   steps: AgentStep[];
-  created: { expenses: number; meals: number; investments: number; custom: number };
+  created: {
+    expenses: number;
+    meals: number;
+    investments: number;
+    subscriptions: number;
+    custom: number;
+  };
   status: 'completed' | 'failed';
   durationMs: number;
   createdAt: string;

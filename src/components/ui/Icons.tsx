@@ -118,6 +118,29 @@ export const CalendarIcon = (p: Props) => (
   </Svg>
 );
 
+export const RepeatIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 12V10a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 12v2a4 4 0 0 1-4 4H3" />
+  </Svg>
+);
+
+export const MicIcon = (p: Props) => (
+  <Svg {...p}>
+    <rect x="9" y="2" width="6" height="12" rx="3" />
+    <path d="M5 11a7 7 0 0 0 14 0" />
+    <path d="M12 18v3" />
+  </Svg>
+);
+
+export const StopIcon = (p: Props) => (
+  <Svg {...p}>
+    <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" stroke="none" />
+  </Svg>
+);
+
 export const TrashIcon = (p: Props) => (
   <Svg {...p}>
     <path d="M4 7h16M10 11v6M14 11v6" />
