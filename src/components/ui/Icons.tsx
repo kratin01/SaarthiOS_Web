@@ -282,6 +282,15 @@ export const PawIcon = (p: Props) => (
   </Svg>
 );
 
+export const PastryIcon = (p: Props) => (
+  <Svg {...p}>
+    <path d="M6 11.5c-.6-1.6.3-3 1.6-3.4A3.4 3.4 0 0 1 12 4a3.4 3.4 0 0 1 4.4 4.1c1.3.4 2.2 1.8 1.6 3.4" />
+    <path d="M5.5 11.5h13" />
+    <path d="M6.6 12.2 8 20h8l1.4-7.8" />
+    <path d="M10.4 12.4 9.7 20M13.6 12.4 14.3 20" />
+  </Svg>
+);
+
 /**
  * The icons a custom agent can pick from. The keys match CUSTOM_AGENT_ICONS on
  * the server, so anything saved there can always be drawn here.
@@ -296,6 +305,7 @@ export const AGENT_ICONS = {
   music: MusicIcon,
   brush: BrushIcon,
   paw: PawIcon,
+  pastry: PastryIcon,
   moon: MoonIcon
 } as const;
 
