@@ -16,7 +16,7 @@ import { TipsPanel } from '@/components/insights/TipsPanel';
 import { PencilIcon, PlusIcon, RepeatIcon, TrashIcon } from '@/components/ui/Icons';
 import { DonutChart, Legend } from '@/components/charts/Charts';
 import { formatDay, formatMoney, labelise } from '@/lib/format';
-import type { BillingCycle, Subscription } from '@/types';
+import type { BillingCycle, Subscription, SubscriptionSummary } from '@/types';
 
 const CATEGORIES = [
   'streaming',
@@ -48,6 +48,19 @@ const CYCLE_WORD: Record<BillingCycle, string> = {
   quarterly: 'a quarter',
   yearly: 'a year'
 };
+
+/**
+ * Zero is the honest answer for most of the back half of a month, so the hint
+ * has to carry the useful part: when the next one actually lands.
+ */
+function leftThisMonthHint(summary: SubscriptionSummary): string | undefined {
+  if (summary.dueThisMonthCount) {
+    const n = summary.dueThisMonthCount;
+    return `${n} charge${n === 1 ? '' : 's'} still to come`;
+  }
+  const next = summary.upcoming[0];
+  return next ? `nothing left — next is ${next.name} on ${formatDay(next.on)}` : undefined;
+}
 
 export function SubscriptionsPage() {
   const { user } = useAuth();
@@ -127,9 +140,9 @@ export function SubscriptionsPage() {
               accent={ACCENT}
             />
             <Stat
-              label="Due in 30 days"
+              label="Left this month"
               value={money(summary.dueThisMonth)}
-              hint={summary.upcoming[0] ? `next: ${summary.upcoming[0].name}` : undefined}
+              hint={leftThisMonthHint(summary)}
               accent={ACCENT}
             />
           </div>

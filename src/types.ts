@@ -188,6 +188,7 @@ export interface SubscriptionSummary {
     inDays: number;
   }[];
   dueThisMonth: number;
+  dueThisMonthCount: number;
   /** Null until there is both a subscription and a month of spending to compare. */
   shareOfSpending: { spent: number; month: string; percent: number } | null;
 }
