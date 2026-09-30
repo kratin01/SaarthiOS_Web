@@ -83,9 +83,9 @@ export function Composer({
           placeholder={placeholder}
           onChange={(event) => onChange(event.target.value)}
           onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
+            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
               event.preventDefault();
-              onSend();
+              if (!busy && !voice.listening && !voice.busy && value.trim()) onSend();
             }
           }}
           className="max-h-40 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-ink placeholder:text-muted/70 focus:outline-none disabled:opacity-60"
@@ -118,7 +118,7 @@ export function Composer({
         <button
           type="button"
           onClick={onSend}
-          disabled={busy || !value.trim()}
+          disabled={busy || voice.listening || voice.busy || !value.trim()}
           aria-label="Send message"
           className="brand-solid flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition disabled:cursor-not-allowed disabled:opacity-40"
         >

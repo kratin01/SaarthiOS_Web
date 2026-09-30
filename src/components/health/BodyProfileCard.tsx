@@ -106,8 +106,8 @@ export function BodyProfileCard() {
           <Figure label="Calories a day" value={`${user?.dailyCalorieGoal ?? 0}`} hint="kcal" />
           <Figure
             label="Protein a day"
-            value={user?.dailyProteinGoal ? `${user.dailyProteinGoal}` : '—'}
-            hint={user?.dailyProteinGoal ? 'g' : 'not set'}
+            value={user?.dailyProteinGoal ? `${user.dailyProteinGoal}` : 'Not set'}
+            hint={user?.dailyProteinGoal ? 'g' : undefined}
           />
         </div>
       )}
@@ -115,7 +115,7 @@ export function BodyProfileCard() {
       {!isSet && !open && (
         <p className="flex items-center gap-2 text-sm text-muted">
           <LeafIcon className="h-4 w-4 shrink-0" />
-          Nothing set yet — your calorie goal is the default {user?.dailyCalorieGoal ?? 2000} kcal.
+          Nothing set yet. Your calorie goal is the default {user?.dailyCalorieGoal ?? 2000} kcal.
         </p>
       )}
 
@@ -234,7 +234,7 @@ export function BodyProfileCard() {
 
               <p className="mt-3 text-xs text-muted">
                 These are estimates from your height and weight. Change either number if you know
-                better — nothing is saved until you press Save.
+                better. Nothing is saved until you press Save.
               </p>
 
               <button

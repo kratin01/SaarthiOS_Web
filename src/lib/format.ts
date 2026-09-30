@@ -76,6 +76,20 @@ export const labelise = (value: string): string =>
 
 export const formatPercent = (value: number) => `${value > 0 ? '+' : ''}${value}%`;
 
+/** Model replies, including ones saved before this rule, can carry dashes the UI must not show. */
+export function plainPunctuation(text: string): string {
+  return text
+    .replace(/^([ \t]*)[\u2013\u2014][ \t]+/gm, '$1- ')
+    .replace(/(\|[ \t]*)[\u2013\u2014](?=[ \t]*\|)/g, '$1-')
+    .replace(/(\d)[ \t]*[\u2013\u2014][ \t]*(?=\d)/g, '$1-')
+    .replace(
+      /[ \t]*(?:\u2014|[ \t]\u2013(?=[ \t]|$))[ \t]*(?=(.?))/gm,
+      (_dash, next: string, offset: number, whole: string) =>
+        offset === 0 || whole[offset - 1] === '\n' || !next || /[.,!?;:)]/.test(next) ? '' : ', '
+    )
+    .replace(/,[ \t]*,/g, ',');
+}
+
 /** Ten muted tones for charts, warm to cool, so they sit calmly together. */
 export const CHART_COLORS = [
   '#4E7C6B',

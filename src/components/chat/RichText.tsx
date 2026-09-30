@@ -9,6 +9,7 @@
  * decides to emit.
  */
 import type { ReactNode } from 'react';
+import { plainPunctuation } from '@/lib/format';
 
 const isTableRow = (line: string) => line.trim().startsWith('|') && line.trim().endsWith('|');
 const isDivider = (line: string) => /^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(line) && line.includes('-');
@@ -55,7 +56,7 @@ function inline(text: string, keyPrefix: string): ReactNode[] {
 }
 
 export function RichText({ text }: { text: string }) {
-  const lines = text.split('\n');
+  const lines = plainPunctuation(text).split('\n');
   const blocks: ReactNode[] = [];
   let i = 0;
 
@@ -123,7 +124,8 @@ export function RichText({ text }: { text: string }) {
     }
 
     // Everything else is a paragraph, running until a blank line or a table.
-    const paragraph: string[] = [];
+    const paragraph: string[] = [line];
+    i += 1;
     while (i < lines.length && lines[i].trim() && !isTableRow(lines[i]) && !isBullet(lines[i])) {
       paragraph.push(lines[i]);
       i += 1;
@@ -135,7 +137,7 @@ export function RichText({ text }: { text: string }) {
     );
   }
 
-  return <div className="space-y-1.5">{blocks}</div>;
+  return <div className="space-y-1.5 break-words">{blocks}</div>;
 }
 
 /** Lets the caller widen a bubble that holds a table. */

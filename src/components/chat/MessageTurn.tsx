@@ -15,7 +15,7 @@ export function MessageTurn({ run }: { run: AgentRun }) {
       <UserBubble text={run.message} />
 
       <div className="flex justify-start">
-        <div className={`space-y-2 ${wide ? 'w-full' : 'max-w-[90%] sm:max-w-[75%]'}`}>
+        <div className={`min-w-0 space-y-2 ${wide ? 'w-full' : 'max-w-[90%] sm:max-w-[75%]'}`}>
           <div
             className={`rounded-2xl rounded-bl-md border px-4 py-2.5 text-sm ${
               failed
@@ -41,7 +41,7 @@ export function MessageTurn({ run }: { run: AgentRun }) {
 export function UserBubble({ text }: { text: string }) {
   return (
     <div className="flex justify-end animate-fade-up">
-      <div className="brand-solid max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-2.5 text-sm sm:max-w-[70%]">
+      <div className="brand-solid max-w-[85%] break-words whitespace-pre-wrap rounded-2xl rounded-br-md px-4 py-2.5 text-sm sm:max-w-[70%]">
         {text}
       </div>
     </div>

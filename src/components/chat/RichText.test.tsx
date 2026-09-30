@@ -3,6 +3,13 @@ import { render, screen } from '@testing-library/react';
 import { RichText, hasTable } from './RichText';
 
 describe('RichText', () => {
+  it('renders incomplete table rows as text without freezing', () => {
+    const { container } = render(<RichText text={'An incomplete reply\n| Food | INR 200 |\n\n| truncated |'} />);
+    expect(container.textContent).toContain('| Food | INR 200 |');
+    expect(container.textContent).toContain('| truncated |');
+    expect(container.querySelector('table')).toBeNull();
+  });
+
   it('renders a table from pipes', () => {
     const reply = [
       'Here are your transport expenses.',

@@ -15,11 +15,12 @@ import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { RangePicker } from '@/components/ui/RangePicker';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
 import { LoadMore } from '@/components/ui/LoadMore';
 import { TipsPanel } from '@/components/insights/TipsPanel';
-import { PencilIcon, PlusIcon, TrashIcon, agentIcon } from '@/components/ui/Icons';
+import { PencilIcon, PlusIcon, agentIcon } from '@/components/ui/Icons';
 import { TrendChart } from '@/components/charts/Charts';
 import { formatDay, formatRelativeDay } from '@/lib/format';
 import type { CustomAgent, CustomAgentField, CustomEntry, Range } from '@/types';
@@ -131,18 +132,11 @@ export function CustomAgentPage() {
                         type="button"
                         onClick={() => setEditing(item)}
                         aria-label={`Edit ${item.title}`}
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                        className="row-action rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-ink"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => void remove(item._id)}
-                        aria-label="Delete entry"
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <DeleteButton label="entry" onDelete={() => remove(item._id)} />
                     </li>
                   ))}
                 </ul>
@@ -160,7 +154,7 @@ export function CustomAgentPage() {
             ) : (
               <EmptyState
                 title="Nothing logged yet"
-                description={`Add one by hand, or just tell the assistant — it knows about ${
+                description={`Add one by hand, or just tell the assistant. It knows about ${
                   data.agent.name
                 }.`}
               />

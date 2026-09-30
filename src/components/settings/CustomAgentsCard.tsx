@@ -86,7 +86,7 @@ export function CustomAgentsCard() {
         <p className="text-sm text-muted">
           {max === 0
             ? 'Ask whoever runs this server to raise MAX_CUSTOM_AGENTS.'
-            : 'Nothing yet. An agent could track workouts, reading, mood — anything you would otherwise keep in a notes app.'}
+            : 'Nothing yet. An agent could track workouts, reading, mood or anything else you would otherwise keep in a notes app.'}
         </p>
       ) : (
         <ul className="space-y-2">

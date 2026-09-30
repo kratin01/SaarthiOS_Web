@@ -6,7 +6,7 @@
  * away whenever the underlying data changes — switching range, or adding and
  * deleting a row — so the list can never show a stale tail.
  */
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { errorMessage } from '@/api/http';
 import type { PageInfo } from '@/types';
 
@@ -25,34 +25,43 @@ export function useLoadMore<T>({ first, firstPage, resetKey, fetchMore }: Option
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // `total` changes whenever a row is added or removed, which is exactly when
-  // the appended pages stop lining up with the first one.
-  const total = firstPage?.total;
+  const request = useRef(0);
+  const pending = useRef(false);
 
   useEffect(() => {
+    request.current += 1;
+    pending.current = false;
     setExtra([]);
     setPage(undefined);
     setError(null);
-  }, [resetKey, total]);
+    setLoading(false);
+    return () => { request.current += 1; };
+  }, [resetKey, firstPage]);
 
   const items = useMemo(() => [...first, ...extra], [first, extra]);
   const current = page ?? firstPage;
 
   const loadMore = useCallback(async () => {
-    if (!current?.hasMore || loading) return;
+    if (!current?.hasMore || pending.current) return;
 
+    const currentRequest = ++request.current;
+    pending.current = true;
     setLoading(true);
     setError(null);
     try {
       const next = await fetchMore(items.length);
+      if (currentRequest !== request.current) return;
       setExtra((rows) => [...rows, ...next.items]);
       setPage(next.page);
     } catch (err) {
-      setError(errorMessage(err, 'Could not load more.'));
+      if (currentRequest === request.current) setError(errorMessage(err, 'Could not load more.'));
     } finally {
-      setLoading(false);
+      if (currentRequest === request.current) {
+        pending.current = false;
+        setLoading(false);
+      }
     }
-  }, [current?.hasMore, loading, fetchMore, items.length]);
+  }, [current?.hasMore, fetchMore, items.length]);
 
   return {
     items,

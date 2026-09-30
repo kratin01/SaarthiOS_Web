@@ -55,7 +55,7 @@ export const authApi = {
 
   me: () => http.get<{ user: User }>('/auth/me').then((r) => r.data.user),
 
-  updateProfile: (body: Partial<Pick<User, 'name' | 'currency' | 'monthlyBudget' | 'dailyCalorieGoal' | 'dailyProteinGoal' | 'heightCm' | 'weightKg' | 'bodyGoal'>>) =>
+  updateProfile: (body: Partial<Pick<User, 'name' | 'currency' | 'monthlyBudget' | 'dailyCalorieGoal' | 'dailyProteinGoal' | 'heightCm' | 'weightKg' | 'bodyGoal'>> & { tutorialStatus?: 'skipped' | 'completed' }) =>
     http.patch<{ user: User }>('/auth/me', body).then((r) => r.data.user),
 
   /** Works out BMI and suggested targets. Saves nothing. */

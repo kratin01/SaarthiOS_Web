@@ -58,9 +58,13 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
     <div className="flex min-h-screen items-center justify-center bg-canvas px-4 py-10">
       <div className="w-full max-w-sm animate-fade-up">
         <div className="mb-8 text-center">
-          <span className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-brand-500">
+          <Link
+            to="/"
+            aria-label="SaarthiOS home"
+            className="mx-auto mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-brand-500"
+          >
             <span className="h-3.5 w-3.5 rounded-full bg-canvas" />
-          </span>
+          </Link>
           <h1 className="text-xl font-semibold tracking-tight text-ink">
             {isRegister ? 'Create your space' : 'Welcome back'}
           </h1>
@@ -193,6 +197,11 @@ export function AuthPage({ mode }: { mode: 'login' | 'register' }) {
             className="font-medium text-brand-600 hover:text-brand-700"
           >
             {isRegister ? 'Sign in' : 'Create one'}
+          </Link>
+        </p>
+        <p className="mt-2 text-center text-sm">
+          <Link to="/" className="text-muted hover:text-ink">
+            See what SaarthiOS does
           </Link>
         </p>
       </div>

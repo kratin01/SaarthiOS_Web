@@ -79,7 +79,7 @@ export function HoldingsPanel({
         <p className="text-sm text-muted">
           {hasStocks
             ? 'Prices are not fetched until you ask, so nothing here is stale without you knowing.'
-            : 'Only holdings with a share count can be valued — a rupee amount alone does not say how many units it bought.'}
+            : 'Only holdings with a share count can be valued. A rupee amount alone does not say how many units it bought.'}
         </p>
       )}
 
@@ -141,7 +141,7 @@ export function HoldingsPanel({
                     </div>
                   ) : (
                     <p className="shrink-0 text-xs text-muted">
-                      No price found{holding.symbol ? ` for ${holding.symbol}` : ' — add a ticker'}
+                      {holding.symbol ? `No price found for ${holding.symbol}` : 'No price found. Add a ticker.'}
                     </p>
                   )}
                 </li>

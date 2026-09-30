@@ -10,15 +10,16 @@ interface Props {
   onSelect: (id: string) => void;
   onNew: () => void;
   onDelete: (id: string) => void;
+  disabled?: boolean;
 }
 
-export function ConversationList({ conversations, activeId, onSelect, onNew, onDelete }: Props) {
+export function ConversationList({ conversations, activeId, onSelect, onNew, onDelete, disabled }: Props) {
   const [confirming, setConfirming] = useState<string | null>(null);
 
   return (
     <div className="flex h-full flex-col">
       <div className="p-3">
-        <button type="button" className="btn-ghost w-full justify-start" onClick={onNew}>
+        <button type="button" disabled={disabled} className="btn-ghost w-full justify-start" onClick={onNew}>
           <PlusIcon className="h-4 w-4" />
           New chat
         </button>
@@ -36,6 +37,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
                 <button
                   type="button"
                   onClick={() => onSelect(c._id)}
+                  disabled={disabled}
                   className={`w-full rounded-xl px-3 py-2 pr-8 text-left transition ${
                     c._id === activeId ? 'bg-brand-50 text-brand-700' : 'text-muted hover:bg-canvas'
                   }`}
@@ -50,6 +52,7 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
                   <span className="absolute right-1.5 top-1.5 flex gap-1">
                     <button
                       type="button"
+                      disabled={disabled}
                       onClick={() => {
                         onDelete(c._id);
                         setConfirming(null);
@@ -70,8 +73,9 @@ export function ConversationList({ conversations, activeId, onSelect, onNew, onD
                   <button
                     type="button"
                     aria-label={`Delete chat: ${c.title}`}
+                    disabled={disabled}
                     onClick={() => setConfirming(c._id)}
-                    className="absolute right-2 top-2.5 rounded-lg p-1 text-muted opacity-0 transition hover:bg-surface hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
+                    className="row-action absolute right-1 top-1 rounded-lg p-1 text-muted transition hover:bg-surface hover:text-expense"
                   >
                     <TrashIcon className="h-3.5 w-3.5" />
                   </button>

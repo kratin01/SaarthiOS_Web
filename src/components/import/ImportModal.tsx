@@ -13,7 +13,7 @@ import { InlineNotice } from '@/components/ui/Notices';
 import { Modal } from '@/components/ui/Modal';
 import { Spinner } from '@/components/ui/States';
 import { CheckIcon, UploadIcon } from '@/components/ui/Icons';
-import { formatDay, formatMoney, labelise } from '@/lib/format';
+import { formatDay, formatMoney, labelise, plainPunctuation } from '@/lib/format';
 import type { ExtractedDocument } from '@/types';
 
 const ACCEPT = '.pdf,.csv,.txt,.png,.jpg,.jpeg,.webp';
@@ -145,12 +145,12 @@ export function ImportModal({ open, currency, onClose, onImported }: Props) {
           {busy === 'reading' && (
             <p className="flex items-center justify-center gap-2 text-sm text-muted">
               <Spinner className="h-4 w-4" />
-              Reading the file — a long statement can take a moment.
+              Reading the file. A long statement can take a moment.
             </p>
           )}
 
           <p className="rounded-xl border border-line bg-canvas px-3 py-2 text-xs text-muted">
-            Nothing is saved until you review it. Scanned PDFs have no text in them — upload a
+            Nothing is saved until you review it. Scanned PDFs have no text in them, so upload a
             screenshot of those instead.
           </p>
 
@@ -163,8 +163,8 @@ export function ImportModal({ open, currency, onClose, onImported }: Props) {
       ) : (
         <div className="space-y-4">
           <div className="rounded-xl border border-line bg-canvas px-3 py-2">
-            <p className="text-sm font-medium text-ink">{doc.documentType}</p>
-            <p className="mt-0.5 text-xs text-muted">{doc.summary}</p>
+            <p className="text-sm font-medium text-ink">{plainPunctuation(doc.documentType)}</p>
+            <p className="mt-0.5 text-xs text-muted">{plainPunctuation(doc.summary)}</p>
           </div>
 
           {total === 0 && doc.expenses.length + doc.meals.length + doc.investments.length === 0 ? (

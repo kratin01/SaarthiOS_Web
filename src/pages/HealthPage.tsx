@@ -9,6 +9,7 @@ import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { RangePicker } from '@/components/ui/RangePicker';
 import { ReportButton } from '@/components/ui/ReportButton';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
@@ -118,7 +119,7 @@ export function HealthPage() {
             />
             <Stat
               label="Most eaten"
-              value={data.summary.topFoods[0]?.name ?? '—'}
+              value={data.summary.topFoods[0]?.name ?? 'None yet'}
               hint={data.summary.topFoods[0] ? `${data.summary.topFoods[0].count} times` : undefined}
               accent="#6F9E7E"
             />
@@ -206,18 +207,11 @@ export function HealthPage() {
                         type="button"
                         onClick={() => setEditing(meal)}
                         aria-label={`Edit ${meal.mealType}`}
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                        className="row-action rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-ink"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => void remove(meal._id)}
-                        aria-label="Delete meal"
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <DeleteButton label="meal" onDelete={() => remove(meal._id)} />
                     </li>
                   ))}
                 </ul>
@@ -352,7 +346,7 @@ function MealModal({
       <form onSubmit={submit} className="space-y-4">
         {!existing && (
           <p className="rounded-xl border border-line bg-canvas px-3 py-2 text-xs text-muted">
-            For several dishes at once, describe the meal in chat instead — the Health Agent
+            For several dishes at once, describe the meal in chat instead. The Health Agent
             estimates each item for you.
           </p>
         )}

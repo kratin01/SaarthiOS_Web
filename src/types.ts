@@ -4,6 +4,7 @@ export interface User {
   _id: string;
   name: string;
   email: string;
+  tutorialStatus?: 'pending' | 'skipped' | 'completed';
   currency: string;
   monthlyBudget: number | null;
   dailyCalorieGoal: number;

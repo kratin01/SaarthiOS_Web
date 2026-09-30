@@ -50,6 +50,7 @@ export function ChatPage() {
   );
 
   const bottomRef = useRef<HTMLDivElement>(null);
+  const threadRequest = useRef(0);
 
   const toggleHistory = () => {
     setHistoryOpen((open) => {
@@ -99,17 +100,20 @@ export function ChatPage() {
   }, [runs, pending]);
 
   const openConversation = async (id: string) => {
+    if (pending) return;
+    const request = ++threadRequest.current;
     setLoadingThread(true);
     setError(null);
     try {
       const { runs: loaded, page } = await chatApi.conversation(id);
+      if (request !== threadRequest.current) return;
       setActiveId(id);
       setRuns(loaded);
       setThread(page);
     } catch (err) {
-      setError(errorMessage(err, 'Could not open that chat.'));
+      if (request === threadRequest.current) setError(errorMessage(err, 'Could not open that chat.'));
     } finally {
-      setLoadingThread(false);
+      if (request === threadRequest.current) setLoadingThread(false);
     }
   };
 
@@ -118,18 +122,23 @@ export function ChatPage() {
     if (!activeId || !thread?.hasEarlier || loadingEarlier) return;
 
     setLoadingEarlier(true);
+    const request = threadRequest.current;
     try {
       const { runs: older, page } = await chatApi.conversation(activeId, thread.oldestIndex);
+      if (request !== threadRequest.current) return;
       setRuns((current) => [...older, ...current]);
       setThread(page);
     } catch (err) {
-      setError(errorMessage(err, 'Could not load earlier messages.'));
+      if (request === threadRequest.current) setError(errorMessage(err, 'Could not load earlier messages.'));
     } finally {
       setLoadingEarlier(false);
     }
   };
 
   const startNewChat = () => {
+    if (pending) return;
+    threadRequest.current += 1;
+    setLoadingThread(false);
     setActiveId(null);
     setRuns([]);
     setThread(null);
@@ -138,14 +147,19 @@ export function ChatPage() {
   };
 
   const removeConversation = async (id: string) => {
-    await chatApi.removeConversation(id).catch(() => undefined);
-    if (id === activeId) startNewChat();
-    void refreshConversations();
+    if (pending) return;
+    try {
+      await chatApi.removeConversation(id);
+      if (id === activeId) startNewChat();
+      void refreshConversations();
+    } catch (err) {
+      setError(errorMessage(err, 'Could not delete that chat. Try again.'));
+    }
   };
 
   const send = async (text?: string) => {
     const message = (text ?? draft).trim();
-    if (!message || pending) return;
+    if (!message || pending || loadingThread) return;
 
     setDraft('');
     setPending(message);
@@ -167,7 +181,7 @@ export function ChatPage() {
   const isEmpty = runs.length === 0 && !pending && !loadingThread;
 
   return (
-    <div className="flex h-[calc(100vh-3.25rem)] lg:h-screen">
+    <div className="flex h-[calc(100dvh-3.25rem)] lg:h-dvh">
       {/* Past chats stay out of the way until asked for. */}
       {historyOpen && (
         <>
@@ -191,6 +205,7 @@ export function ChatPage() {
               </button>
             </div>
             <ConversationList
+              disabled={Boolean(pending)}
               conversations={conversations}
               activeId={activeId}
               onSelect={openConversation}
@@ -234,13 +249,14 @@ export function ChatPage() {
               <p className="truncate text-xs text-muted">
                 {status?.configured
                   ? `${status.label} · ${status.model}`
-                  : 'Describe what happened — the right agents take it from there.'}
+                  : 'Describe what happened and the right agents take it from there.'}
               </p>
             </div>
 
             <button
               type="button"
               onClick={startNewChat}
+              disabled={Boolean(pending)}
               aria-label="New chat"
               title="New chat"
               className="rounded-lg p-1.5 text-muted transition hover:bg-surface hover:text-ink"
@@ -256,7 +272,7 @@ export function ChatPage() {
               <div className="rounded-2xl border border-line bg-surface p-5 text-sm">
                 <p className="font-medium text-ink">The assistant needs an AI key</p>
                 <p className="mt-1 text-muted">
-                  {status?.reason ?? 'No provider is set up yet.'} You can add one in Settings — no
+                  {status?.reason ?? 'No provider is set up yet.'} You can add one in Settings. No
                   redeploy needed. Until then you can still add records by hand.
                 </p>
                 <div className="mt-3 flex flex-wrap gap-2">
@@ -295,7 +311,7 @@ export function ChatPage() {
                       key={suggestion}
                       type="button"
                       disabled={aiOff}
-                      onClick={() => void send(suggestion)}
+                      onClick={() => setDraft(suggestion)}
                       className="rounded-xl border border-line bg-surface px-3.5 py-2.5 text-left text-sm text-muted transition hover:border-brand-200 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       {suggestion}
@@ -356,7 +372,7 @@ export function ChatPage() {
               onChange={setDraft}
               onSend={() => void send()}
               sending={Boolean(pending)}
-              disabled={aiOff}
+              disabled={aiOff || loadingThread}
               placeholder={aiOff ? 'Add an AI key in Settings to start chatting' : 'Tell me what happened…'}
             />
           </div>

@@ -9,12 +9,13 @@ import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { RangePicker } from '@/components/ui/RangePicker';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
 import { LoadMore } from '@/components/ui/LoadMore';
 import { TipsPanel } from '@/components/insights/TipsPanel';
 import { HoldingsPanel } from '@/components/investments/HoldingsPanel';
-import { PencilIcon, PlusIcon, TrashIcon, TrendIcon } from '@/components/ui/Icons';
+import { PencilIcon, PlusIcon, TrendIcon } from '@/components/ui/Icons';
 import { BarsChart, DonutChart, Legend } from '@/components/charts/Charts';
 import { formatMoney, formatMonth, formatRelativeDay, labelise } from '@/lib/format';
 import type { Investment, Range } from '@/types';
@@ -87,9 +88,10 @@ export function InvestmentsPage() {
       <TipsPanel domain="investment" range={range} accent="#6B87A8" disabled={!data?.items.length} />
 
       <HoldingsPanel
+        key={`${range}:${currency}:${data?.summary.total}`}
         range={range}
         currency={currency}
-        hasStocks={Boolean(data?.items.some((i) => i.quantity && QUANTITY_TYPES.includes(i.type)))}
+        hasStocks={!loading && Boolean(data?.summary.byType.some((item) => QUANTITY_TYPES.includes(item.type)))}
       />
 
       {loading ? (
@@ -114,7 +116,7 @@ export function InvestmentsPage() {
             />
             <Stat
               label="Largest allocation"
-              value={data.summary.byType[0] ? labelise(data.summary.byType[0].type) : '—'}
+              value={data.summary.byType[0] ? labelise(data.summary.byType[0].type) : 'None yet'}
               hint={data.summary.byType[0] ? money(data.summary.byType[0].amount) : undefined}
               accent="#6B87A8"
             />
@@ -180,18 +182,11 @@ export function InvestmentsPage() {
                         type="button"
                         onClick={() => setEditing(item)}
                         aria-label={`Edit ${item.instrument || item.type}`}
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                        className="row-action rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-ink"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => void remove(item._id)}
-                        aria-label="Delete investment"
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <DeleteButton label="investment" onDelete={() => remove(item._id)} />
                     </li>
                   ))}
                 </ul>

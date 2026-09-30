@@ -12,7 +12,7 @@ import { useServiceNotice } from '@/context/StatusContext';
 import { InlineNotice } from '@/components/ui/Notices';
 import { Spinner } from '@/components/ui/States';
 import { SparkIcon } from '@/components/ui/Icons';
-import { isMonthRange, monthRangeLabel } from '@/lib/format';
+import { isMonthRange, monthRangeLabel, plainPunctuation } from '@/lib/format';
 import type { Range, TipsResponse } from '@/types';
 
 interface Props {
@@ -24,7 +24,11 @@ interface Props {
   disabled?: boolean;
 }
 
-export function TipsPanel({ domain, range, accent, disabled = false }: Props) {
+export function TipsPanel(props: Props) {
+  return <TipsContent key={`${props.domain}:${props.range}`} {...props} />;
+}
+
+function TipsContent({ domain, range, accent, disabled = false }: Props) {
   const [result, setResult] = useState<TipsResponse | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +87,7 @@ export function TipsPanel({ domain, range, accent, disabled = false }: Props) {
 
       {result && !error && (
         <div className="mt-4 border-t border-line pt-4">
-          <p className="text-sm text-ink">{result.headline}</p>
+          <p className="text-sm text-ink">{plainPunctuation(result.headline)}</p>
 
           {result.tips.length > 0 && (
             <ul className="mt-3 space-y-3">
@@ -95,8 +99,8 @@ export function TipsPanel({ domain, range, accent, disabled = false }: Props) {
                     aria-hidden="true"
                   />
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-ink">{tip.title}</p>
-                    <p className="mt-0.5 text-sm text-muted">{tip.detail}</p>
+                    <p className="text-sm font-medium text-ink">{plainPunctuation(tip.title)}</p>
+                    <p className="mt-0.5 text-sm text-muted">{plainPunctuation(tip.detail)}</p>
                   </div>
                 </li>
               ))}

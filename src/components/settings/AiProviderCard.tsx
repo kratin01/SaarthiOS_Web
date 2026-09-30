@@ -11,7 +11,7 @@ import { useEffect, useState } from 'react';
 import { aiApi } from '@/api';
 import { errorMessage } from '@/api/http';
 import { Card } from '@/components/ui/Card';
-import { Spinner } from '@/components/ui/States';
+import { ErrorState, Spinner } from '@/components/ui/States';
 import { CheckIcon, SparkIcon } from '@/components/ui/Icons';
 import type { AiSettingsResponse, ProviderOption } from '@/types';
 
@@ -38,7 +38,7 @@ export function AiProviderCard({
   onSaved,
   api = aiApi,
   title = 'AI provider',
-  description = 'Change your key or model here — no redeploy needed',
+  description = 'Change your key or model here. No redeploy needed.',
   savedMessage = 'Saved. Your agents will use this from the next message.',
   resetLabel = 'Remove my key'
 }: Props) {
@@ -52,27 +52,30 @@ export function AiProviderCard({
   const [busy, setBusy] = useState<'save' | 'test' | 'models' | 'reset' | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
+    let cancelled = false;
+    setError(null);
     api
       .settings()
       .then((settings) => {
+        if (cancelled) return;
         setData(settings);
         setProvider(settings.provider || 'gemini');
         setModel(settings.model || '');
         setBaseUrl(settings.baseUrl || '');
       })
-      .catch((err) => setError(errorMessage(err, 'Could not load AI settings.')));
-    // `api` is a stable module object, so this runs once per card.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+      .catch((err) => { if (!cancelled) setError(errorMessage(err, 'Could not load AI settings.')); });
+    return () => { cancelled = true; };
+  }, [api, attempt]);
 
   if (!data) {
     return (
       <Card title={title}>
-        <div className="flex justify-center py-6">
+        {error ? <ErrorState message={error} onRetry={() => setAttempt(attempt + 1)} /> : <div className="flex justify-center py-6">
           <Spinner />
-        </div>
+        </div>}
       </Card>
     );
   }
@@ -115,7 +118,7 @@ export function AiProviderCard({
   const test = () =>
     run('test', async () => {
       const result = await api.test(draft);
-      return `Works — ${result.model} replied in ${(result.ms / 1000).toFixed(1)}s.`;
+      return `It works. ${result.model} replied in ${(result.ms / 1000).toFixed(1)}s.`;
     });
 
   const save = () =>
@@ -166,8 +169,8 @@ export function AiProviderCard({
           <p className="rounded-xl border border-line bg-canvas px-3 py-2 text-xs text-muted">
             Currently using <span className="font-medium text-ink">{data.label}</span> ·{' '}
             <span className="font-medium text-ink">{data.model}</span>
-            {data.source === 'shared' && ' — the shared default, not your own key'}
-            {data.source === 'env' && ' — from the server config, not your own key'}
+            {data.source === 'shared' && ' (the shared default, not your own key)'}
+            {data.source === 'env' && ' (from the server config, not your own key)'}
             {typeof data.usersOnDefault === 'number' && (
               <>
                 <br />
@@ -218,7 +221,7 @@ export function AiProviderCard({
             onChange={(e) => setApiKey(e.target.value)}
             placeholder={
               hasStoredKey
-                ? `${data.keyHint} — leave blank to keep it`
+                ? `${data.keyHint} (leave blank to keep it)`
                 : current?.keyOptional
                   ? 'Not needed for this provider'
                   : 'Paste your key'
@@ -268,7 +271,7 @@ export function AiProviderCard({
             {modelOptions.map((m) => (
               <option key={m.id} value={m.id}>
                 {m.id}
-                {m.note ? ` — ${m.note}` : ''}
+                {m.note ? ` (${m.note})` : ''}
               </option>
             ))}
           </select>
@@ -310,7 +313,7 @@ export function AiProviderCard({
             {busy === 'test' ? <Spinner className="h-4 w-4" /> : <SparkIcon className="h-4 w-4" />}
             Test connection
           </button>
-          {(data.source === 'user' || data.source === 'shared') && (
+          {(data.source === 'user' || (data.source === 'shared' && data.usersOnDefault !== undefined)) && (
             <button type="button" className="btn-quiet" onClick={reset} disabled={busy !== null}>
               {resetLabel}
             </button>

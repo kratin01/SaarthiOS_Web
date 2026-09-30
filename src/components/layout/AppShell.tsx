@@ -9,6 +9,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useAgents } from '@/context/AgentsContext';
 import { NoticeBanner } from '@/components/ui/Notices';
+import { Tutorial } from './Tutorial';
 import {
   ChatIcon,
   HomeIcon,
@@ -95,7 +96,7 @@ export function AppShell() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 px-3">
+        <nav className="min-h-0 flex-1 space-y-1 overflow-y-auto px-3">
           {allNav.map(({ to, label, icon: Icon, end }) => (
             <NavLink
               key={to}
@@ -117,6 +118,7 @@ export function AppShell() {
         </nav>
 
         <div className="border-t border-line p-3">
+          <Tutorial key={user?._id} />
           <div className="flex items-center gap-3 rounded-xl px-3 py-2">
             {user?.avatarUrl ? (
               <img

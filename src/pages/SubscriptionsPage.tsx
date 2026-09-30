@@ -6,14 +6,17 @@ import { useState } from 'react';
 import { subscriptionApi } from '@/api';
 import { errorMessage } from '@/api/http';
 import { useFetch } from '@/hooks/useFetch';
+import { useLoadMore } from '@/hooks/useLoadMore';
 import { useAuth } from '@/context/AuthContext';
 import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
+import { DeleteButton } from '@/components/ui/DeleteButton';
+import { LoadMore } from '@/components/ui/LoadMore';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
 import { TipsPanel } from '@/components/insights/TipsPanel';
-import { PencilIcon, PlusIcon, RepeatIcon, TrashIcon } from '@/components/ui/Icons';
+import { PencilIcon, PlusIcon, RepeatIcon } from '@/components/ui/Icons';
 import { DonutChart, Legend } from '@/components/charts/Charts';
 import { formatDay, formatMoney, labelise } from '@/lib/format';
 import type { BillingCycle, Subscription, SubscriptionSummary } from '@/types';
@@ -59,15 +62,24 @@ function leftThisMonthHint(summary: SubscriptionSummary): string | undefined {
     return `${n} charge${n === 1 ? '' : 's'} still to come`;
   }
   const next = summary.upcoming[0];
-  return next ? `nothing left — next is ${next.name} on ${formatDay(next.on)}` : undefined;
+  return next ? `nothing left, next is ${next.name} on ${formatDay(next.on)}` : undefined;
 }
 
 export function SubscriptionsPage() {
   const { user } = useAuth();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Subscription | null>(null);
+  const [status, setStatus] = useState<'all' | 'active' | 'cancelled'>('all');
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [updating, setUpdating] = useState<string | null>(null);
 
-  const { data, loading, error, reload } = useFetch(() => subscriptionApi.list(), []);
+  const { data, loading, error, reload } = useFetch(() => subscriptionApi.list(status), [status]);
+  const rows = useLoadMore({
+    first: data?.items ?? [],
+    firstPage: data?.page,
+    resetKey: status,
+    fetchMore: (offset) => subscriptionApi.list(status, offset)
+  });
   const currency = user?.currency ?? 'INR';
   const money = (value: number) => formatMoney(value, currency);
 
@@ -77,10 +89,19 @@ export function SubscriptionsPage() {
   };
 
   const cancel = async (row: Subscription) => {
-    await subscriptionApi.update(row._id, {
-      endedOn: row.active ? new Date().toISOString() : null
-    });
-    void reload();
+    if (updating) return;
+    setUpdating(row._id);
+    setActionError(null);
+    try {
+      await subscriptionApi.update(row._id, {
+        endedOn: row.active ? new Date().toISOString() : null
+      });
+      await reload();
+    } catch (err) {
+      setActionError(errorMessage(err, 'Could not update this subscription. Try again.'));
+    } finally {
+      setUpdating(null);
+    }
   };
 
   const summary = data?.summary;
@@ -100,6 +121,13 @@ export function SubscriptionsPage() {
 
       <TipsPanel domain="subscription" range="all" accent={ACCENT} disabled={!summary?.activeCount} />
 
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label="Subscription status">
+        {(['all', 'active', 'cancelled'] as const).map((option) => (
+          <button key={option} type="button" className={`chip ${status === option ? 'chip-active' : ''}`} aria-pressed={status === option} onClick={() => setStatus(option)}>{labelise(option)}</button>
+        ))}
+      </div>
+      {actionError && <p role="alert" className="mb-4 text-sm text-expense">{actionError}</p>}
+
       {loading ? (
         <Loading label="Loading subscriptions" />
       ) : error || !data || !summary ? (
@@ -107,8 +135,8 @@ export function SubscriptionsPage() {
       ) : data.items.length === 0 ? (
         <Card>
           <EmptyState
-            title="Nothing renewing yet"
-            description="Add Netflix, the gym, iCloud — anything that charges you on repeat. Or just tell the assistant."
+            title={status === 'all' ? 'Nothing renewing yet' : `No ${status} subscriptions`}
+            description="Add Netflix, the gym, iCloud or anything else that charges you on repeat. Or just tell the assistant."
             action={
               <button type="button" className="btn-primary" onClick={() => setAdding(true)}>
                 <PlusIcon className="h-4 w-4" />
@@ -154,7 +182,7 @@ export function SubscriptionsPage() {
                 <span className="font-semibold" style={{ color: ACCENT }}>
                   {summary.shareOfSpending.percent}%
                 </span>{' '}
-                of what you spent last month — {money(summary.monthly)} of{' '}
+                of what you spent last month: {money(summary.monthly)} of{' '}
                 {money(summary.shareOfSpending.spent)}, before you decided anything.
               </p>
             </Card>
@@ -244,9 +272,9 @@ export function SubscriptionsPage() {
             bodyClassName="p-0 sm:p-0"
           >
             <ul className="divide-y divide-line">
-              {data.items.map((row) => (
-                <li key={row._id} className="group flex items-center gap-3 px-5 py-3">
-                  <div className="min-w-0 flex-1">
+              {rows.items.map((row) => (
+                <li key={row._id} className="group flex flex-wrap items-center gap-3 px-5 py-3">
+                  <div className="min-w-0 basis-1/2 flex-1 sm:basis-0">
                     <p className="truncate text-sm font-medium text-ink">
                       {row.name}
                       {!row.active && (
@@ -267,9 +295,10 @@ export function SubscriptionsPage() {
                   <button
                     type="button"
                     onClick={() => void cancel(row)}
+                    disabled={updating !== null}
                     aria-label={row.active ? `Cancel ${row.name}` : `Restart ${row.name}`}
                     title={row.active ? 'Mark as cancelled' : 'Mark as active again'}
-                    className="rounded-lg px-2 py-1 text-xs text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                    className="row-action rounded-lg px-2 py-1 text-xs text-muted transition hover:bg-canvas hover:text-ink disabled:opacity-50"
                   >
                     {row.active ? 'Cancel' : 'Restart'}
                   </button>
@@ -277,21 +306,15 @@ export function SubscriptionsPage() {
                     type="button"
                     onClick={() => setEditing(row)}
                     aria-label={`Edit ${row.name}`}
-                    className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                    className="row-action rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-ink"
                   >
                     <PencilIcon className="h-4 w-4" />
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => void remove(row._id)}
-                    aria-label={`Delete ${row.name}`}
-                    className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
-                  >
-                    <TrashIcon className="h-4 w-4" />
-                  </button>
+                  <DeleteButton label={row.name} onDelete={() => remove(row._id)} />
                 </li>
               ))}
             </ul>
+            <LoadMore shown={rows.shown} total={rows.total} hasMore={rows.hasMore} loading={rows.loadingMore} error={rows.moreError} onMore={() => void rows.loadMore()} noun="subscriptions" />
           </Card>
         </>
       )}

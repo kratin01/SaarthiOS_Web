@@ -5,6 +5,7 @@
 import { useState } from 'react';
 import type { AgentRun } from '@/types';
 import { CheckIcon, CloseIcon } from '@/components/ui/Icons';
+import { plainPunctuation } from '@/lib/format';
 
 const AGENT_COLOR: Record<string, string> = {
   orchestrator: '#4E7C6B',
@@ -64,7 +65,7 @@ export function AgentActivity({ run }: { run: AgentRun }) {
               </span>
               <div className="min-w-0">
                 <p className="text-xs font-medium text-ink">{step.label}</p>
-                {step.detail && <p className="mt-0.5 text-xs text-muted">{step.detail}</p>}
+                {step.detail && <p className="mt-0.5 text-xs text-muted">{plainPunctuation(step.detail)}</p>}
               </div>
             </li>
           ))}

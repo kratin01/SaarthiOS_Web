@@ -7,6 +7,7 @@ import { StatusProvider } from '@/context/StatusContext';
 import { AppShell } from '@/components/layout/AppShell';
 import { Loading } from '@/components/ui/States';
 import { AuthPage } from '@/pages/AuthPage';
+import { LandingPage } from '@/pages/LandingPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ChatPage } from '@/pages/ChatPage';
 import { CustomAgentPage } from '@/pages/CustomAgentPage';
@@ -64,7 +65,11 @@ function RequireAuth({ children }: { children: ReactNode }) {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  if (!user) {
+    // Visitors arriving at the root should learn what the app is before being asked to sign in.
+    if (location.pathname === '/') return <LandingPage />;
+    return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  }
 
   return <>{children}</>;
 }

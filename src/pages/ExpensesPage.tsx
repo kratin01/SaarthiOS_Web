@@ -9,13 +9,14 @@ import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { Stat } from '@/components/ui/Stat';
 import { Modal } from '@/components/ui/Modal';
+import { DeleteButton } from '@/components/ui/DeleteButton';
 import { RangePicker } from '@/components/ui/RangePicker';
 import { ReportButton } from '@/components/ui/ReportButton';
 import { EmptyState, ErrorState, Loading, Spinner } from '@/components/ui/States';
 import { LoadMore } from '@/components/ui/LoadMore';
 import { ImportModal } from '@/components/import/ImportModal';
 import { TipsPanel } from '@/components/insights/TipsPanel';
-import { PencilIcon, PlusIcon, TrashIcon, UploadIcon, WalletIcon } from '@/components/ui/Icons';
+import { PencilIcon, PlusIcon, UploadIcon, WalletIcon } from '@/components/ui/Icons';
 import { BarsChart, DonutChart, Legend, TrendChart } from '@/components/charts/Charts';
 import { formatDay, formatMoney, formatRelativeDay, labelise } from '@/lib/format';
 import type { Expense, Range } from '@/types';
@@ -119,7 +120,7 @@ export function ExpensesPage() {
             />
             <Stat
               label="Top category"
-              value={data.summary.byCategory[0] ? labelise(data.summary.byCategory[0].category) : '—'}
+              value={data.summary.byCategory[0] ? labelise(data.summary.byCategory[0].category) : 'None yet'}
               hint={data.summary.byCategory[0] ? money(data.summary.byCategory[0].amount) : undefined}
               accent="#C08457"
             />
@@ -200,18 +201,11 @@ export function ExpensesPage() {
                         type="button"
                         onClick={() => setEditing(item)}
                         aria-label={`Edit ${item.merchant || item.category}`}
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-ink focus-visible:opacity-100 group-hover:opacity-100"
+                        className="row-action rounded-lg p-1.5 text-muted transition hover:bg-canvas hover:text-ink"
                       >
                         <PencilIcon className="h-4 w-4" />
                       </button>
-                      <button
-                        type="button"
-                        onClick={() => void remove(item._id)}
-                        aria-label="Delete expense"
-                        className="rounded-lg p-1.5 text-muted opacity-0 transition hover:bg-canvas hover:text-expense focus-visible:opacity-100 group-hover:opacity-100"
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
+                      <DeleteButton label="expense" onDelete={() => remove(item._id)} />
                     </li>
                   ))}
                 </ul>

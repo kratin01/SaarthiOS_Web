@@ -1,10 +1,15 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { RangePicker } from './RangePicker';
 
 const openPicker = () => fireEvent.click(screen.getByRole('button', { name: /pick a month/i }));
 
 describe('RangePicker', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date(2026, 8, 30, 12));
+  });
+  afterEach(() => vi.useRealTimers());
   it('reports the month key when one is picked from the calendar', () => {
     const onChange = vi.fn();
     render(<RangePicker value="month" onChange={onChange} />);
