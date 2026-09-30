@@ -20,6 +20,8 @@ export interface User {
   avatarUrl?: string;
 }
 
+export type AdminSort = 'active' | 'joined';
+
 export interface AdminPerson {
   id: string;
   name: string;
@@ -27,10 +29,13 @@ export interface AdminPerson {
   joinedAt: string;
   signedInWith: 'google' | 'password';
   lastActiveAt: string | null;
+  /** Expenses, meals, investments, subscriptions and custom agent entries together. */
   records: number;
   expenses: number;
   meals: number;
   investments: number;
+  subscriptions: number;
+  entries: number;
   messages: number;
   agents: number;
 }
@@ -40,14 +45,22 @@ export interface AdminOverview {
   windowDays: number;
   users: {
     total: number;
-    newThisWeek: number;
-    activeSevenDays: number;
-    activeThirtyDays: number;
+    /** Both counted inside `windowDays`, like the charts. */
+    newInWindow: number;
+    activeInWindow: number;
     neverUsed: number;
   };
   people: AdminPerson[];
   page: PageInfo;
-  totals: { expenses: number; meals: number; investments: number; messages: number; agents: number };
+  totals: {
+    expenses: number;
+    meals: number;
+    investments: number;
+    subscriptions: number;
+    entries: number;
+    messages: number;
+    agents: number;
+  };
   ai: {
     runs: number;
     failed: number;

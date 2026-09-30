@@ -5,6 +5,7 @@
 import { downloadFile, http } from './http';
 import type {
   AdminOverview,
+  AdminSort,
   AgentRun,
   AiSettingsResponse,
   AiStatus,
@@ -136,8 +137,8 @@ export const dashboardApi = {
 };
 
 export const adminApi = {
-  overview: (days = 30, offset = 0) =>
-    http.get<AdminOverview>('/admin/overview', { params: { days, offset } }).then((r) => r.data),
+  overview: (days = 30, offset = 0, sort: AdminSort = 'active') =>
+    http.get<AdminOverview>('/admin/overview', { params: { days, offset, sort } }).then((r) => r.data),
 
   /** The AI used by everyone who has not set their own key. Same shape as `aiApi`. */
   ai: {
