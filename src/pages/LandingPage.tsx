@@ -1,6 +1,6 @@
 /** The public front door: what SaarthiOS does, before anyone is asked to sign in. */
 import { Link } from 'react-router-dom';
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
 import { useTheme } from '@/context/ThemeContext';
 import {
   ChatIcon,
@@ -114,36 +114,29 @@ export function LandingPage() {
       </header>
 
       <main>
-        <section className="mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-10 px-4 pb-16 pt-6 sm:px-6 lg:grid-cols-2 lg:gap-14 lg:pb-24 lg:pt-12">
-          <div className="animate-fade-up">
-            <p className="mb-5 inline-flex rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
-              Money, meals and habits in one chat
-            </p>
-            <h1 className="text-3xl font-semibold tracking-tight sm:text-5xl sm:leading-[1.1]">
-              Just type what happened. SaarthiOS keeps track.
+        <section className="mx-auto w-full max-w-6xl px-4 pb-8 pt-4 sm:px-6 sm:pt-6">
+          <div className="mx-auto max-w-3xl text-center">
+            <h1 className="text-4xl font-semibold tracking-normal sm:text-5xl sm:leading-tight">
+              SaarthiOS
             </h1>
-            <p className="mt-5 max-w-xl text-base leading-relaxed text-muted sm:text-lg">
-              Write "spent 250 on lunch and had 2 rotis" and it saves the expense, logs the meal and
-              updates your dashboards. Ask how your month is going whenever you like.
+            <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
+              Just type what happened. Your money, meals and habits find their place.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/register" className="btn-primary px-5 py-3">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <Link to="/register" className="btn-primary px-4 py-2.5">
                 Get started
               </Link>
-              <Link to="/login" className="btn-ghost px-5 py-3">
+              <Link to="/login" className="btn-ghost hidden px-4 py-2.5 sm:inline-flex">
                 I already have an account
               </Link>
             </div>
-            <p className="mt-4 text-xs text-muted">
-              Works on your phone too. Add it to your home screen and it opens like an app.
-            </p>
           </div>
 
-          <ChatPreview />
+          <ProductFilm />
         </section>
 
         <section aria-labelledby="how-title" className="border-y border-line bg-surface">
-          <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6">
+          <div className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6">
             <h2 id="how-title" className="text-2xl font-semibold tracking-tight sm:text-3xl">
               How it works
             </h2>
@@ -252,42 +245,51 @@ export function LandingPage() {
   );
 }
 
-function ChatPreview() {
+function ProductFilm() {
+  const [failed, setFailed] = useState(false);
+
   return (
-    <figure className="card animate-fade-up p-4 [animation-delay:120ms] sm:p-6">
-      <figcaption className="mb-4 flex items-center gap-2 text-xs font-medium text-muted">
-        <span className="h-2 w-2 rounded-full bg-health" aria-hidden="true" />
-        Example chat
+    <figure className="mx-auto mt-7 w-full max-w-[min(64rem,74.6667svh)]">
+      <video
+        aria-label="SaarthiOS product demo"
+        aria-describedby="demo-caption"
+        className="aspect-video h-auto w-full rounded-lg bg-surface"
+        width="1600"
+        height="900"
+        controls
+        playsInline
+        preload="none"
+        poster="/demo/saarthios-demo.jpg"
+        onError={() => setFailed(true)}
+        onLoadedData={() => setFailed(false)}
+      >
+        <source
+          src="/demo/saarthios-demo.mp4"
+          type="video/mp4"
+          onError={() => setFailed(true)}
+        />
+        <track kind="captions" src="/demo/saarthios-demo.vtt" srcLang="en" label="English" />
+        Your browser cannot play this video. Read the transcript below.
+      </video>
+      <figcaption id="demo-caption" className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-muted">
+        <span className="font-medium text-ink">One message. Everything in its place.</span>
+        <span>Product demo · Sample data</span>
       </figcaption>
-      <div className="space-y-3 text-sm">
-        <p className="brand-solid ml-auto w-fit max-w-[90%] rounded-2xl rounded-br-md px-4 py-2.5">
-          Spent 250 on lunch and 80 on an auto. Had 2 rotis and dal for dinner.
+      {failed && (
+        <p role="status" className="mt-3 text-sm text-expense">
+          The demo could not load. You can read the transcript below.
         </p>
-        <p className="max-w-[92%] rounded-2xl rounded-bl-md border border-line bg-canvas px-4 py-2.5">
-          Expenses of INR 330 recorded. Meal logged: roti (2), dal (1 katori). Roughly 420 kcal,
-          18 g protein.
-        </p>
-        <ul aria-label="Agents that ran" className="flex flex-wrap gap-2 text-xs text-muted">
-          <li className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1">
-            <CheckIcon className="h-3 w-3 text-expense" />
-            Expense Agent
-          </li>
-          <li className="inline-flex items-center gap-1.5 rounded-full border border-line px-2.5 py-1">
-            <CheckIcon className="h-3 w-3 text-health" />
-            Health Agent
-          </li>
-        </ul>
-      </div>
-      <dl className="mt-5 grid grid-cols-2 gap-3 border-t border-line pt-4">
-        <div>
-          <dt className="text-xs text-muted">Spent today</dt>
-          <dd className="mt-1 text-lg font-semibold">₹330</dd>
+      )}
+      <details className="mt-3 text-xs text-muted">
+        <summary className="w-fit cursor-pointer rounded py-1 hover:text-ink">Video transcript</summary>
+        <div className="mt-2 max-w-2xl space-y-2 text-sm leading-relaxed">
+          <p>A day in SaarthiOS, using sample data. Type: "Spent 250 on lunch and 80 on an auto. Had 2 rotis and dal for dinner."</p>
+          <p>The expense and health agents record INR 330 of expenses and a meal estimated at 420 kcal and 18 g protein.</p>
+          <p>The Overview shows the spending and nutrition totals. The Expenses page separates food from transport.</p>
+          <p>Ask: "How much did I spend on food today?" The assistant answers INR 250 from the saved lunch expense.</p>
+          <p>SaarthiOS. Your day, connected.</p>
         </div>
-        <div>
-          <dt className="text-xs text-muted">Calories today</dt>
-          <dd className="mt-1 text-lg font-semibold">420 kcal</dd>
-        </div>
-      </dl>
+      </details>
     </figure>
   );
 }
