@@ -7,6 +7,7 @@ import { Page, PageHeader } from '@/components/layout/Page';
 import { Card } from '@/components/ui/Card';
 import { AiProviderCard } from '@/components/settings/AiProviderCard';
 import { CustomAgentsCard } from '@/components/settings/CustomAgentsCard';
+import { ConnectedAppsCard } from '@/components/settings/ConnectedAppsCard';
 import { Spinner } from '@/components/ui/States';
 import { currencySymbol } from '@/lib/format';
 
@@ -144,6 +145,8 @@ export function SettingsPage() {
           <AiProviderCard />
 
           <CustomAgentsCard />
+
+          <ConnectedAppsCard />
 
           <Card title="Account">
             <p className="text-sm text-muted">

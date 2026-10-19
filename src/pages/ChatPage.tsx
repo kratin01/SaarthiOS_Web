@@ -7,7 +7,7 @@
  * understood as the answer.
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { chatApi } from '@/api';
 import { errorMessage } from '@/api/http';
 import { useServiceNotice } from '@/context/StatusContext';
@@ -17,6 +17,7 @@ import { ConversationList } from '@/components/chat/ConversationList';
 import { MessageTurn, UserBubble } from '@/components/chat/MessageTurn';
 import { Spinner } from '@/components/ui/States';
 import { PlusIcon, SparkIcon, HistoryIcon, CloseIcon } from '@/components/ui/Icons';
+import { labelise } from '@/lib/format';
 import type { AgentRun, AiStatus, Conversation, PageInfo, ThreadPageInfo } from '@/types';
 
 const SUGGESTIONS = [
@@ -51,6 +52,15 @@ export function ChatPage() {
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const threadRequest = useRef(0);
+  /** The reply that just arrived; only it may continue straight to an app sign-in. */
+  const [freshRunId, setFreshRunId] = useState<string | null>(null);
+  const [params, setParams] = useSearchParams();
+  const [connectedApp] = useState(() => params.get('connected'));
+
+  // Read once, then dropped, so a refresh does not announce it again.
+  useEffect(() => {
+    if (params.has('connected')) setParams({}, { replace: true });
+  }, [params, setParams]);
 
   const toggleHistory = () => {
     setHistoryOpen((open) => {
@@ -168,6 +178,7 @@ export function ChatPage() {
       const { run, conversationId } = await chatApi.send(message, activeId ?? undefined);
       setActiveId(conversationId);
       setRuns((previous) => [...previous, run]);
+      setFreshRunId(run._id);
       void refreshConversations();
     } catch (err) {
       setError(errorMessage(err, 'The assistant could not respond.'));
@@ -289,6 +300,12 @@ export function ChatPage() {
             {/* A key exists but the provider is unhappy, or an operator said something. */}
             {!aiOff && chatNotice && <InlineNotice message={chatNotice} />}
 
+            {connectedApp && (
+              <p role="status" className="rounded-xl border border-health/25 bg-health/5 px-4 py-2.5 text-sm text-ink">
+                {labelise(connectedApp)} is connected. Ask me to add your latest {labelise(connectedApp)} order.
+              </p>
+            )}
+
             {loadingThread ? (
               <div className="flex justify-center py-10">
                 <Spinner />
@@ -336,7 +353,7 @@ export function ChatPage() {
                 )}
 
                 {runs.map((run) => (
-                  <MessageTurn key={run._id} run={run} />
+                  <MessageTurn key={run._id} run={run} fresh={run._id === freshRunId} />
                 ))}
               </>
             )}

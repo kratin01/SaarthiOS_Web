@@ -13,6 +13,7 @@ import type {
   AuthProviders,
   BodyGoal,
   BodyTargets,
+  ConnectedApp,
   Conversation,
   CustomAgent,
   CustomAgentSummary,
@@ -123,6 +124,31 @@ export const aiApi = {
   /** One AI pass over a screen's real numbers. `domain` may be a custom agent slug. */
   tips: (domain: string, range: Range = 'month') =>
     http.post<TipsResponse>('/ai/tips', { domain, range }, { timeout: 90_000 }).then((r) => r.data)
+};
+
+/**
+ * Outside apps such as Swiggy. Signing in happens on the app's own page; the
+ * server only ever hands back the address of that page.
+ */
+export const connectionsApi = {
+  list: () => http.get<{ apps: ConnectedApp[] }>('/connections').then((r) => r.data.apps),
+
+  start: (app: string, returnTo: 'settings' | 'chat') =>
+    http
+      .post<{ authorizationUrl: string }>(`/connections/${encodeURIComponent(app)}/start`, { returnTo })
+      .then((r) => r.data.authorizationUrl),
+
+  /** Finishes a sign-in with the one-time code the app sent back. */
+  complete: (state: string, code: string) =>
+    http
+      .post<{ app: string; label: string; returnTo: 'settings' | 'chat' }>(
+        '/connections/complete',
+        { state, code }
+      )
+      .then((r) => r.data),
+
+  disconnect: (app: string) =>
+    http.delete<{ apps: ConnectedApp[] }>(`/connections/${encodeURIComponent(app)}`).then((r) => r.data.apps)
 };
 
 export const dashboardApi = {

@@ -2,9 +2,10 @@
 import type { AgentRun } from '@/types';
 import { formatTime } from '@/lib/format';
 import { AgentActivity } from './AgentActivity';
+import { ConnectAppAction } from './ConnectAppAction';
 import { RichText, hasTable } from './RichText';
 
-export function MessageTurn({ run }: { run: AgentRun }) {
+export function MessageTurn({ run, fresh = false }: { run: AgentRun; fresh?: boolean }) {
   const failed = run.status === 'failed';
   const asking = run.intent === 'clarify';
   // A table needs room; the usual reply reads better kept narrow.
@@ -27,6 +28,10 @@ export function MessageTurn({ run }: { run: AgentRun }) {
           >
             {run.reply ? <RichText text={run.reply} /> : 'No reply.'}
           </div>
+
+          {run.action?.kind === 'connect_app' && (
+            <ConnectAppAction action={run.action} autoStart={fresh} />
+          )}
 
           {run.steps.length > 1 && <AgentActivity run={run} />}
 

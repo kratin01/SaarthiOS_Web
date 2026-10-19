@@ -12,7 +12,8 @@ const AGENT_COLOR: Record<string, string> = {
   expense: '#C08457',
   health: '#6F9E7E',
   investment: '#6B87A8',
-  analyst: '#6B87A8'
+  analyst: '#6B87A8',
+  apps: '#B9825F'
 };
 
 export function AgentActivity({ run }: { run: AgentRun }) {

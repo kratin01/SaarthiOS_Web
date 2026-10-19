@@ -288,6 +288,13 @@ export interface AgentStep {
   at: string;
 }
 
+/** Something an agent reply offers, such as signing in to Swiggy. */
+export interface AgentAction {
+  kind: 'connect_app';
+  app: string;
+  label: string;
+}
+
 export interface AgentRun {
   _id: string;
   message: string;
@@ -302,9 +309,24 @@ export interface AgentRun {
     subscriptions: number;
     custom: number;
   };
+  action?: AgentAction | null;
   status: 'completed' | 'failed';
   durationMs: number;
   createdAt: string;
+}
+
+export type AppConnectionStatus = 'connected' | 'expired' | 'disconnected' | 'unavailable';
+
+/** An outside app such as Swiggy, and whether this user has linked it. */
+export interface ConnectedApp {
+  id: string;
+  label: string;
+  description: string;
+  status: AppConnectionStatus;
+  /** Why it cannot be connected, when `status` is `unavailable`. */
+  note: string;
+  connectedAt: string | null;
+  lastImportedAt: string | null;
 }
 
 export interface Conversation {

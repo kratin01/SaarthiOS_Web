@@ -17,6 +17,7 @@ import { InvestmentsPage } from '@/pages/InvestmentsPage';
 import { SubscriptionsPage } from '@/pages/SubscriptionsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { AdminPage } from '@/pages/AdminPage';
+import { ConnectCallbackPage } from '@/pages/ConnectCallbackPage';
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
             <Route path="a/:slug" element={<CustomAgentPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="admin" element={<AdminPage />} />
+            <Route path="callback" element={<ConnectCallbackPage />} />
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />
