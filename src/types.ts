@@ -18,7 +18,19 @@ export interface User {
   isAdmin?: boolean;
   googleId?: string | null;
   avatarUrl?: string;
+  /** Cards shown on the Overview. Missing = `DEFAULT_OVERVIEW_CARDS`. */
+  overviewCards?: string[];
+  inspirationKind?: InspirationKind;
 }
+
+export type InspirationKind =
+  | 'affirmation'
+  | 'quote'
+  | 'money'
+  | 'health'
+  | 'reflection'
+  | 'gita'
+  | 'mix';
 
 export type AdminSort = 'active' | 'joined';
 
@@ -377,15 +389,61 @@ export interface Dashboard {
   health: {
     totals: { calories: number; protein: number; carbs: number; fat: number; meals: number };
     calorieGoal: number;
+    proteinGoal: number;
     loggedDays: number;
     dailyAverage: number;
+    dailyProteinAverage: number;
     series: { date: string; calories: number; protein: number }[];
   };
-  /** Investments are deliberately absent: they are a monthly habit, so the
-   *  overview leaves them to the Investments page. */
+  /** Always this calendar month, whichever period is showing. */
+  investments: { total: number; count: number };
+  subscriptions: {
+    monthly: number;
+    activeCount: number;
+    next: { name: string; amount: number; on: string; inDays: number } | null;
+  };
+  /** Every active custom agent, for its optional Overview card. */
+  agents: OverviewAgent[];
   recent: RecentItem[];
   recentPage: PageInfo;
+  /** Arithmetic checks; the Overview shows the insight agent's instead. */
   insights: Insight[];
+}
+
+export interface OverviewAgent {
+  id: string;
+  slug: string;
+  name: string;
+  icon: string;
+  count: number;
+  stat: { key: string; label: string; unit: string; total: number; average: number } | null;
+}
+
+export interface WebLink {
+  title: string;
+  url: string;
+}
+
+export interface OverviewInsights {
+  /** `rules` = the arithmetic fallback when the AI could not run. */
+  source: 'ai' | 'rules';
+  period: DashboardPeriod;
+  insights: (Insight & { link: WebLink | null })[];
+  generatedAt: string;
+  notice: string;
+}
+
+export interface Inspiration {
+  requested: InspirationKind;
+  /** What was actually written; differs from `requested` only for `mix`. */
+  kind: InspirationKind;
+  text: string;
+  author: string;
+  /** Sanskrit transliteration, Gita verses only. */
+  original: string;
+  meaning: string;
+  link: WebLink | null;
+  generatedAt: string;
 }
 
 export interface AiStatus {

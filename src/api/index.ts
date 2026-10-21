@@ -26,10 +26,12 @@ import type {
   ExpenseSummary,
   ExtractedDocument,
   HoldingsResponse,
+  Inspiration,
   Investment,
   InvestmentSummary,
   Meal,
   NutritionSummary,
+  OverviewInsights,
   PageInfo,
   Range,
   RecentItem,
@@ -56,7 +58,7 @@ export const authApi = {
 
   me: () => http.get<{ user: User }>('/auth/me').then((r) => r.data.user),
 
-  updateProfile: (body: Partial<Pick<User, 'name' | 'currency' | 'monthlyBudget' | 'dailyCalorieGoal' | 'dailyProteinGoal' | 'heightCm' | 'weightKg' | 'bodyGoal'>> & { tutorialStatus?: 'skipped' | 'completed' }) =>
+  updateProfile: (body: Partial<Pick<User, 'name' | 'currency' | 'monthlyBudget' | 'dailyCalorieGoal' | 'dailyProteinGoal' | 'heightCm' | 'weightKg' | 'bodyGoal' | 'overviewCards' | 'inspirationKind'>> & { tutorialStatus?: 'skipped' | 'completed' }) =>
     http.patch<{ user: User }>('/auth/me', body).then((r) => r.data.user),
 
   /** Works out BMI and suggested targets. Saves nothing. */
@@ -133,6 +135,23 @@ export const dashboardApi = {
       .get<{ items: RecentItem[]; page: PageInfo }>('/dashboard/activity', {
         params: { offset, limit }
       })
+      .then((r) => r.data),
+
+  /** Cached for the day on the server; the first visit of a day waits for the AI. */
+  insights: (period: DashboardPeriod) =>
+    http
+      .get<OverviewInsights>('/dashboard/insights', { params: { period }, timeout: 90_000 })
+      .then((r) => r.data),
+  refreshInsights: (period: DashboardPeriod) =>
+    http
+      .post<OverviewInsights>('/dashboard/insights/refresh', { period }, { timeout: 90_000 })
+      .then((r) => r.data),
+
+  inspiration: () =>
+    http.get<Inspiration>('/dashboard/inspiration', { timeout: 90_000 }).then((r) => r.data),
+  refreshInspiration: () =>
+    http
+      .post<Inspiration>('/dashboard/inspiration/refresh', {}, { timeout: 90_000 })
       .then((r) => r.data)
 };
 
