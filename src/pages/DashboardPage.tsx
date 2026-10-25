@@ -358,7 +358,7 @@ function OverviewCards({ data, show, aiShown, onCustomise }: OverviewCardsProps)
                 <>
                   {/* Capped so loading more scrolls inside the card instead of
                       stretching the page past the chart beside it. */}
-                  <ul className="max-h-[28rem] divide-y divide-line overflow-y-auto">
+                  <ul className="scroll-list divide-y divide-line">
                     {activity.items.map((item) => (
                       <li
                         key={`${item.kind}-${item.id}`}

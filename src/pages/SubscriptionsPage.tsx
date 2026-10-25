@@ -271,7 +271,7 @@ export function SubscriptionsPage() {
             }
             bodyClassName="p-0 sm:p-0"
           >
-            <ul className="divide-y divide-line">
+            <ul className="scroll-list divide-y divide-line">
               {rows.items.map((row) => (
                 <li key={row._id} className="group flex flex-wrap items-center gap-3 px-5 py-3">
                   <div className="min-w-0 basis-1/2 flex-1 sm:basis-0">

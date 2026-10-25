@@ -184,7 +184,7 @@ export function HealthPage() {
           <Card title="Meals" bodyClassName="p-0 sm:p-0">
             {rows.items.length ? (
               <>
-                <ul className="divide-y divide-line">
+                <ul className="scroll-list divide-y divide-line">
                   {rows.items.map((meal) => (
                     <li key={meal._id} className="group flex items-start gap-3 px-5 py-3">
                       <div className="min-w-0 flex-1">

@@ -198,6 +198,11 @@
            px-3 py-1 text-xs font-medium text-muted transition hover:text-ink;
   }
 
+  /** Long "Load more" lists scroll inside their card instead of stretching the page. */
+  .scroll-list {
+    @apply max-h-[28rem] overflow-y-auto;
+  }
+
   .chip-active {
     @apply border-brand-200 bg-brand-50 text-brand-700;
   }
