@@ -30,11 +30,13 @@ import type {
   Investment,
   InvestmentSummary,
   Meal,
+  MonthReview,
   NutritionSummary,
   OverviewInsights,
   PageInfo,
   Range,
   RecentItem,
+  ReviewStory,
   Subscription,
   SubscriptionSummary,
   ThreadPageInfo,
@@ -152,6 +154,22 @@ export const dashboardApi = {
   refreshInspiration: () =>
     http
       .post<Inspiration>('/dashboard/inspiration/refresh', {}, { timeout: 90_000 })
+      .then((r) => r.data)
+};
+
+/** Month in review: numbers come back fast; the AI story is a separate, slower call. */
+export const reviewApi = {
+  month: (month: string) =>
+    http.get<MonthReview>('/review', { params: { month } }).then((r) => r.data),
+
+  story: (month: string) =>
+    http
+      .get<ReviewStory>('/review/story', { params: { month }, timeout: 120_000 })
+      .then((r) => r.data),
+
+  refreshStory: (month: string) =>
+    http
+      .post<ReviewStory>('/review/story/refresh', { month }, { timeout: 120_000 })
       .then((r) => r.data)
 };
 

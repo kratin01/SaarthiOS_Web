@@ -16,6 +16,8 @@ import { Stat } from '@/components/ui/Stat';
 import { LoadMore } from '@/components/ui/LoadMore';
 import { EmptyState, ErrorState, Loading } from '@/components/ui/States';
 import {
+  CalendarIcon,
+  ChevronRightIcon,
   DumbbellIcon,
   LeafIcon,
   RepeatIcon,
@@ -30,6 +32,7 @@ import { InspirationCard } from '@/components/overview/InspirationCard';
 import { InsightsCard } from '@/components/overview/InsightsCard';
 import { CustomiseOverview } from '@/components/overview/CustomiseOverview';
 import { DEFAULT_OVERVIEW_CARDS, agentCardId } from '@/lib/overview';
+import { reviewNudge } from '@/lib/review';
 import { formatDay, formatMoney, formatRelativeDay, labelise } from '@/lib/format';
 import type { Dashboard, DashboardPeriod } from '@/types';
 
@@ -57,6 +60,7 @@ export function DashboardPage() {
   const show = (id: string) => chosen.has(id);
   const showInspiration = show('inspiration');
   const showInsights = show('insights');
+  const nudge = reviewNudge();
 
   const toggle = (
     <div className="flex gap-1.5">
@@ -112,6 +116,18 @@ export function DashboardPage() {
   return (
     <Page>
       {header}
+
+      {nudge && (
+        <Link
+          to={`/review?month=${nudge.month}`}
+          className="mb-6 flex items-center gap-3 rounded-xl border border-line bg-canvas px-4 py-3
+            text-sm text-ink transition hover:border-brand-200 hover:bg-brand-50"
+        >
+          <CalendarIcon className="h-4 w-4 shrink-0 text-brand-600" />
+          <span className="min-w-0 flex-1">{nudge.text}</span>
+          <ChevronRightIcon className="h-4 w-4 shrink-0 text-muted" />
+        </Link>
+      )}
 
       {/* Outside the loading branch, so the AI blocks never wait for the numbers. */}
       {showInspiration && <InspirationCard className="mb-6" />}

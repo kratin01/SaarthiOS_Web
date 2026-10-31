@@ -11,6 +11,7 @@ import { useAgents } from '@/context/AgentsContext';
 import { NoticeBanner } from '@/components/ui/Notices';
 import { Tutorial } from './Tutorial';
 import {
+  CalendarIcon,
   ChatIcon,
   HomeIcon,
   LeafIcon,
@@ -40,7 +41,8 @@ const NAV: NavItem[] = [
   { to: '/expenses', label: 'Expenses', icon: WalletIcon },
   { to: '/health', label: 'Health', icon: LeafIcon },
   { to: '/investments', label: 'Investments', icon: TrendIcon },
-  { to: '/subscriptions', label: 'Subscriptions', icon: RepeatIcon }
+  { to: '/subscriptions', label: 'Subscriptions', icon: RepeatIcon },
+  { to: '/review', label: 'Month review', icon: CalendarIcon }
 ];
 
 const SETTINGS_NAV: NavItem = { to: '/settings', label: 'Settings', icon: SettingsIcon };

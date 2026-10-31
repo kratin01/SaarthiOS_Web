@@ -424,6 +424,62 @@ export interface WebLink {
   url: string;
 }
 
+/** Month in review: every number is worked out on the server from the user's own records. */
+export interface MonthReview {
+  month: string;
+  label: string;
+  /** The month is still running, so it covers the days so far. */
+  isCurrent: boolean;
+  currency: string;
+  daysCovered: number;
+  money: {
+    total: number;
+    transactions: number;
+    dailyAverage: number;
+    budget: number | null;
+    budgetUsedPct: number | null;
+    noSpendDays: number;
+    longestNoSpend: { from: string; to: string; days: number } | null;
+    busiestDay: { date: string; amount: number } | null;
+    biggest: { amount: number; label: string; merchant: string; category: string; date: string } | null;
+    categories: { category: string; amount: number; share: number }[];
+    regular: { merchant: string; count: number; amount: number } | null;
+    weekendShare: number | null;
+    viaChatShare: number | null;
+    /** For a running month, the same number of days of the month before. */
+    previous: { total: number; label: string; partial: boolean };
+    changePct: number | null;
+  };
+  food: {
+    meals: number;
+    daysLogged: number;
+    avgCalories: number;
+    calorieGoal: number;
+    onTargetDays: number;
+    avgProtein: number;
+    proteinGoal: number;
+    proteinGoalDays: number;
+    favourite: { name: string; count: number } | null;
+  };
+  investing: { total: number; count: number; topType: string | null };
+  subscriptions: { monthly: number; active: number };
+  agents: {
+    name: string;
+    icon: string;
+    entries: number;
+    stat: { label: string; unit: string; total: number } | null;
+  }[];
+  assistant: { messages: number };
+}
+
+export interface ReviewStory {
+  persona: string;
+  headline: string;
+  highlights: { title: string; text: string }[];
+  nudge: string;
+  generatedAt: string;
+}
+
 export interface OverviewInsights {
   /** `rules` = the arithmetic fallback when the AI could not run. */
   source: 'ai' | 'rules';
