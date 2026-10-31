@@ -1,5 +1,5 @@
 /** Expense analytics plus a small form for adding one by hand. */
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { expenseApi, authApi } from '@/api';
 import { errorMessage } from '@/api/http';
 import { useFetch } from '@/hooks/useFetch';
@@ -43,21 +43,50 @@ export function ExpensesPage() {
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<Expense | null>(null);
   const [importing, setImporting] = useState(false);
+  /** A category picked from the chart or the list, or null for every category. */
+  const [category, setCategory] = useState<string | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   const { data, loading, error, reload } = useFetch(() => expenseApi.list(range), [range]);
+  // Only the list is narrowed; the stats and charts above keep showing everything.
+  const filtered = useFetch(
+    () => (category ? expenseApi.list(range, 0, category) : Promise.resolve(null)),
+    [range, category]
+  );
   const currency = user?.currency ?? 'INR';
   const money = (value: number) => formatMoney(value, currency);
 
+  const listed = category ? filtered.data : data;
+  // The API's summary always covers the whole period, so the category's own totals come from here.
+  const picked = category
+    ? data?.summary.byCategory.find((c) => c.category === category)
+    : undefined;
   const rows = useLoadMore({
-    first: data?.items ?? [],
-    firstPage: data?.page,
-    resetKey: range,
-    fetchMore: (offset) => expenseApi.list(range, offset)
+    first: listed?.items ?? [],
+    firstPage: listed?.page,
+    resetKey: `${range}:${category ?? ''}`,
+    fetchMore: (offset) => expenseApi.list(range, offset, category ?? undefined)
   });
+
+  const refresh = () => {
+    void reload();
+    if (category) void filtered.reload();
+  };
 
   const remove = async (id: string) => {
     await expenseApi.remove(id);
-    void reload();
+    refresh();
+  };
+
+  const pickCategory = (next: string | null) => {
+    setCategory(next);
+    if (next) listRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  // The chart and legend toggle: clicking the category already shown goes back to all.
+  const toggleCategory = (index: number) => {
+    const picked = data?.summary.byCategory[index]?.category ?? null;
+    pickCategory(picked === category ? null : picked);
   };
 
   return (
@@ -148,13 +177,17 @@ export function ExpensesPage() {
                     valueKey="amount"
                     height={170}
                     formatValue={money}
+                    onSelect={toggleCategory}
                   />
                   <Legend
                     items={data.summary.byCategory
                       .slice(0, 6)
                       .map((c) => ({ label: labelise(c.category), value: c.amount }))}
                     formatValue={money}
+                    onSelect={toggleCategory}
+                    selectedIndex={selectedIndex(data.summary.byCategory, category)}
                   />
+                  <p className="text-xs text-muted">Tap a category to see its transactions.</p>
                 </div>
               ) : (
                 <EmptyState title="No categories yet" />
@@ -177,19 +210,61 @@ export function ExpensesPage() {
             </Card>
           )}
 
-          <Card title="Transactions" bodyClassName="p-0 sm:p-0">
-            {rows.items.length ? (
+          <div ref={listRef} className="scroll-mt-4" aria-hidden="true" />
+          <Card
+            title={category ? `${labelise(category)} transactions` : 'Transactions'}
+            description={
+              picked
+                ? `${countLabel(picked.count)}, ${money(picked.amount)} ${data.summary.range}`
+                : undefined
+            }
+            action={
+              <div className="flex items-center gap-2">
+                <label htmlFor="expense-category-filter" className="sr-only">
+                  Show category
+                </label>
+                <select
+                  id="expense-category-filter"
+                  value={category ?? ''}
+                  onChange={(event) => pickCategory(event.target.value || null)}
+                  className="input w-auto py-1.5 text-xs"
+                >
+                  <option value="">All categories</option>
+                  {data.summary.byCategory.map((c) => (
+                    <option key={c.category} value={c.category}>
+                      {labelise(c.category)}
+                    </option>
+                  ))}
+                </select>
+                {category && (
+                  <button
+                    type="button"
+                    className="btn-quiet px-2 py-1.5 text-xs"
+                    onClick={() => pickCategory(null)}
+                  >
+                    Show all
+                  </button>
+                )}
+              </div>
+            }
+            bodyClassName="p-0 sm:p-0"
+          >
+            {category && filtered.loading ? (
+              <Loading label={`Loading ${labelise(category).toLowerCase()} transactions`} />
+            ) : category && filtered.error ? (
+              <ErrorState message={filtered.error} onRetry={filtered.reload} />
+            ) : rows.items.length ? (
               <>
                 <ul className="scroll-list divide-y divide-line">
                   {rows.items.map((item) => (
                     <li key={item._id} className="group flex items-center gap-3 px-5 py-3">
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-sm font-medium text-ink">
-                          {item.merchant || labelise(item.category)}
+                          {item.merchant || item.note || labelise(item.category)}
                         </p>
-                        <p className="truncate text-xs text-muted">
+                        <p className="line-clamp-2 break-words text-xs text-muted">
                           {labelise(item.category)}
-                          {item.note && ` · ${item.note}`}
+                          {item.merchant && item.note && ` · ${item.note}`}
                           {item.source === 'chat' && ' · via chat'}
                         </p>
                       </div>
@@ -222,7 +297,11 @@ export function ExpensesPage() {
               </>
             ) : (
               <EmptyState
-                title="No expenses in this period"
+                title={
+                  category
+                    ? `No ${labelise(category).toLowerCase()} expenses in this period`
+                    : 'No expenses in this period'
+                }
                 description="Add one by hand, or just tell the assistant what you spent."
               />
             )}
@@ -241,7 +320,7 @@ export function ExpensesPage() {
         onSaved={() => {
           setAdding(false);
           setEditing(null);
-          void reload();
+          refresh();
         }}
       />
 
@@ -249,11 +328,17 @@ export function ExpensesPage() {
         open={importing}
         currency={currency}
         onClose={() => setImporting(false)}
-        onImported={reload}
+        onImported={refresh}
       />
     </Page>
   );
 }
+
+/** Which legend row to highlight; -1 never matches, so nothing is highlighted. */
+const selectedIndex = (byCategory: { category: string }[], category: string | null) =>
+  category ? byCategory.findIndex((c) => c.category === category) : null;
+
+const countLabel = (count: number) => `${count} transaction${count === 1 ? '' : 's'}`;
 
 function ExpenseModal({
   existing,

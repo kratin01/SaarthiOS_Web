@@ -177,10 +177,11 @@ export const adminApi = {
 };
 
 export const expenseApi = {
-  list: (range: Range = 'month', offset = 0) =>
+  /** `category` narrows the rows and the summary to one category. */
+  list: (range: Range = 'month', offset = 0, category?: string) =>
     http
       .get<{ items: Expense[]; summary: ExpenseSummary; page: PageInfo }>('/expenses', {
-        params: { range, offset }
+        params: { range, offset, ...(category ? { category } : {}) }
       })
       .then((r) => r.data),
 

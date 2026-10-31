@@ -160,13 +160,16 @@ export function DonutChart({
   nameKey,
   valueKey,
   height = 220,
-  formatValue
+  formatValue,
+  onSelect
 }: {
   data: Record<string, string | number>[];
   nameKey: string;
   valueKey: string;
   height?: number;
   formatValue?: (value: number) => string;
+  /** Index into `data` of the slice that was clicked. */
+  onSelect?: (index: number) => void;
 }) {
   const chart = useChartTheme();
   if (!data.length) return <NoData label="Nothing to split yet" />;
@@ -182,6 +185,8 @@ export function DonutChart({
           outerRadius="86%"
           paddingAngle={2}
           stroke="none"
+          cursor={onSelect ? 'pointer' : undefined}
+          onClick={onSelect ? (_, index) => onSelect(index) : undefined}
         >
           {data.map((_, index) => (
             <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
@@ -199,31 +204,55 @@ export function DonutChart({
   );
 }
 
-/** The colour key that sits beside a donut. */
+/** The colour key that sits beside a donut. With `onSelect`, each row is a button. */
 export function Legend({
   items,
-  formatValue
+  formatValue,
+  onSelect,
+  selectedIndex = null
 }: {
   items: { label: string; value: number }[];
   formatValue: (value: number) => string;
+  onSelect?: (index: number) => void;
+  selectedIndex?: number | null;
 }) {
   const total = items.reduce((sum, item) => sum + item.value, 0) || 1;
 
   return (
-    <ul className="space-y-2.5">
-      {items.map((item, index) => (
-        <li key={item.label} className="flex items-center gap-3 text-sm">
-          <span
-            className="h-2.5 w-2.5 shrink-0 rounded-full"
-            style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
-          />
-          <span className="min-w-0 flex-1 truncate text-ink">{item.label}</span>
-          <span className="shrink-0 text-muted">{Math.round((item.value / total) * 100)}%</span>
-          <span className="w-20 shrink-0 text-right font-medium text-ink">
-            {formatValue(item.value)}
-          </span>
-        </li>
-      ))}
+    <ul className={onSelect ? 'space-y-0.5' : 'space-y-2.5'}>
+      {items.map((item, index) => {
+        const row = (
+          <>
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ backgroundColor: CHART_COLORS[index % CHART_COLORS.length] }}
+            />
+            <span className="min-w-0 flex-1 truncate text-left text-ink">{item.label}</span>
+            <span className="shrink-0 text-muted">{Math.round((item.value / total) * 100)}%</span>
+            <span className="w-20 shrink-0 text-right font-medium text-ink">
+              {formatValue(item.value)}
+            </span>
+          </>
+        );
+
+        return (
+          <li key={item.label} className="text-sm">
+            {onSelect ? (
+              <button
+                type="button"
+                onClick={() => onSelect(index)}
+                aria-pressed={selectedIndex === index}
+                className={`flex w-full items-center gap-3 rounded-lg px-2 py-1 transition
+                  hover:bg-canvas ${selectedIndex === index ? 'bg-canvas ring-1 ring-line' : ''}`}
+              >
+                {row}
+              </button>
+            ) : (
+              <div className="flex items-center gap-3">{row}</div>
+            )}
+          </li>
+        );
+      })}
     </ul>
   );
 }
