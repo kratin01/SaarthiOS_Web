@@ -124,6 +124,19 @@ it('rewrites the story on request', async () => {
   expect(reviewApi.refreshStory).toHaveBeenCalledWith('2026-10');
 });
 
+it('explains a story written from the numbers when the AI could not answer', async () => {
+  vi.mocked(reviewApi.story).mockResolvedValue({
+    ...story,
+    source: 'rules',
+    persona: 'The Weekend Explorer',
+    notice: 'The insight agent could not write this up just now, so it comes straight from your numbers.'
+  });
+  renderPage();
+  await screen.findByText('The Weekend Explorer');
+  expect(screen.getByText(/comes straight from your numbers/)).toBeTruthy();
+  expect(screen.queryByText(/usable JSON/)).toBeNull();
+});
+
 it('invites the person to start logging when the month is empty', async () => {
   vi.mocked(reviewApi.month).mockResolvedValue({
     ...review,

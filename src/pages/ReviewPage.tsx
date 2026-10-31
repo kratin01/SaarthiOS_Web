@@ -201,6 +201,12 @@ export function ReviewPage() {
               <p className="mt-3 max-w-2xl text-base leading-relaxed text-ink/80">
                 {plainPunctuation(story.headline)}
               </p>
+              {story.notice && (
+                <p className="mt-3 flex max-w-2xl items-start gap-2 text-xs text-muted">
+                  <SparkIcon className="mt-px h-3.5 w-3.5 shrink-0" />
+                  {story.notice}
+                </p>
+              )}
             </div>
           ) : (
             <>

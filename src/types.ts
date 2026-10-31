@@ -473,10 +473,13 @@ export interface MonthReview {
 }
 
 export interface ReviewStory {
+  /** `rules` = written in code from the numbers because no AI could answer. */
+  source?: 'ai' | 'rules';
   persona: string;
   headline: string;
   highlights: { title: string; text: string }[];
   nudge: string;
+  notice?: string;
   generatedAt: string;
 }
 
